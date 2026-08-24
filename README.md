@@ -1,11 +1,9 @@
-# Feedback pós-compra
+# Mangut Sorbet - Feedbacks
 
-Pesquisa de satisfação automatizada, do convite ao relatório.
+Pesquisa de satisfação automatizada, com foco em melhoria com base no feedback de clientes.
 
-Uma sorveteria vende um pote. No dia seguinte o cliente recebe um e-mail com um
-link só dele, dá uma nota de 0 a 10 e escreve duas linhas se quiser. Segunda de
-manhã, o dono abre a caixa de entrada e lê o que mudou na semana — sem abrir
-planilha nenhuma.
+Uma sorveteria montou um quiosque no ibirapuera e resolveram apostar em novos sabores voltados ao gosto do paulistano,
+gostariam de saber se estavam acertando no sabor, textura e etc. criamos uma automação que coleta essas avaliações em tempo real e transforma em insights dos novos sabores.
 
 `n8n` · `Google Sheets` · `Gemini` · `JavaScript` · `Python` · `SMTP`
 
