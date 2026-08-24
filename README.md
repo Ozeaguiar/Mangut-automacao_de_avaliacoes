@@ -1,7 +1,10 @@
-# Mangut Sorbet — Avaliações de produtos
+# Mangut Sorbet · Feedbacks
 
 Pesquisa de satisfação automatizada, com foco em melhorar o produto a partir do
 que o cliente responde.
+
+> Projeto de estudo. A sorveteria é um cenário fictício e os dados são de teste.
+> O código roda de verdade, ponta a ponta.
 
 Uma sorveteria montou um quiosque no Ibirapuera e resolveu apostar em sabores
 novos, pensados para o gosto do paulistano. Eles queriam saber se estavam
@@ -15,8 +18,10 @@ nota média e os assuntos que mais apareceram nos comentários.
 
 `n8n` · `Google Sheets` · `Gemini` · `JavaScript` · `Python` · `SMTP`
 
-São três workflows, um formulário e nenhuma ferramenta paga. O passo a passo de
-instalação está no [`GUIA_SETUP.md`](GUIA_SETUP.md).
+São três workflows, um formulário e nenhuma ferramenta paga. Tem 91 testes
+automatizados, incluindo uma suíte que valida o desenho dos fluxos antes de
+importar no n8n. O passo a passo de instalação está no
+[`GUIA_SETUP.md`](GUIA_SETUP.md).
 
 ---
 
@@ -120,7 +125,7 @@ depende de nenhum segredo no código.
 **Os JSONs dos workflows são gerados por script.** `tests/gerar_workflows.py`
 monta os 41 nodes e embute o `site/formulario.html` na hora de gerar. Fiz assim
 porque editar JSON de 2 mil linhas na mão é pedir para errar, e porque as colunas
-da planilha ficam declaradas em um lugar só — as mesmas alimentam o schema dos
+da planilha ficam declaradas em um lugar só. As mesmas alimentam o schema dos
 nodes e a planilha modelo, então elas não saem de sincronia.
 
 ---
@@ -149,7 +154,7 @@ make planilha        # gera planilha/modelo_planilha.xlsx
 2. Importe os três arquivos de `workflows/` no n8n
 3. Em cada workflow, abra o node **Configuração** e cole o ID da planilha
 4. Conecte as credenciais do Google Sheets, do SMTP e do Gemini
-5. Rode o workflow 1 na mão — o convite chega no seu e-mail
+5. Rode o workflow 1 na mão e o convite chega no seu e-mail
 
 Os detalhes de cada credencial estão no [`GUIA_SETUP.md`](GUIA_SETUP.md).
 
@@ -251,3 +256,8 @@ n8n.
 - [ ] Trocar Google Sheets por Postgres e plugar um BI
 - [ ] Webhook `POST /nova-venda` para a loja empurrar a venda em vez de esperar o polling
 - [ ] Comparar temas entre semanas, para ver o que está subindo
+
+---
+
+Feito por José Aguiar.
+[LinkedIn](https://www.linkedin.com/in/ozzeaguiar) · [GitHub](https://github.com/Ozeaguiar)
