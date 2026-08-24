@@ -1,11 +1,11 @@
-# Mangut Sorbet — Feedbacks
+# Mangut Sorbet — Avaliações de produtos
 
 Pesquisa de satisfação automatizada, com foco em melhorar o produto a partir do
 que o cliente responde.
 
 Uma sorveteria montou um quiosque no Ibirapuera e resolveu apostar em sabores
 novos, pensados para o gosto do paulistano. Eles queriam saber se estavam
-acertando no sabor, na textura, no preço. O caixa não responde isso: venda alta
+acertando no sabor, na textura, no preço. O caixa não responde isso. Venda alta
 pode ser só curiosidade, e quem não gostou quase nunca volta para reclamar.
 
 Então montei essa automação. Um dia depois da compra o cliente recebe um link só
@@ -29,8 +29,8 @@ sabe que já mandou.
 
 ![Workflow 1 no n8n](docs/fluxo-1.png)
 
-Deixei o e-mail bem curto: uma frase, um botão e o link em texto embaixo, caso o
-botão não funcione no cliente de e-mail da pessoa.
+Deixei o e-mail bem curto. Uma frase, um botão, e o link em texto embaixo para o
+caso de o botão não funcionar no cliente de e-mail da pessoa.
 
 ![E-mail de convite](docs/email_convite.png)
 
@@ -50,8 +50,8 @@ buscando esses dados depois.
 Comecei fazendo do jeito comum, com a página buscando os dados por `fetch` depois
 de carregar, e travei no CORS. Passei um tempo tentando configurar cabeçalho até
 perceber que dava para o próprio n8n devolver a página pronta. Aí o problema
-sumiu junto: mesma origem, sem CORS, e ainda economizou uma requisição e o
-efeito de placeholder piscando na tela.
+sumiu junto. A página passou a sair da mesma origem dos webhooks, e ainda
+economizou uma requisição e o efeito de placeholder piscando na tela.
 
 ![Formulário](docs/formulario.png)
 
@@ -64,13 +64,13 @@ comentário passa a ser obrigatório. Quem dá 10 lê *"Que ótimo saber disso!"
 Achei que isso ajudaria a trazer mais comentário escrito de quem teve problema,
 que é justamente quem costuma não escrever nada.
 
-Cada situação tem uma tela: link inválido, já respondido, carregando, erro no
-envio e sucesso. Na tela de erro eu aviso que as respostas continuam preenchidas,
+Cada situação tem uma tela própria. Link inválido, já respondido, carregando,
+erro no envio e sucesso. Na tela de erro eu aviso que as respostas continuam ali,
 porque a primeira versão apagava tudo e era frustrante de testar.
 
 A escala de 0 a 10 é um `radiogroup` que funciona com as setas do teclado e tem
 `aria-label` em cada opção. Também tomei o cuidado de nunca usar só cor para
-indicar coisa: toda faixa de nota tem texto junto.
+indicar alguma coisa. Toda faixa de nota vem com texto junto.
 
 ---
 
@@ -85,20 +85,20 @@ o e-mail.
 ![Relatório semanal](docs/relatorio_semanal.png)
 
 A IA não calcula nada. NPS, média e contagem de promotores e detratores são feitos
-em JavaScript. Deixei o modelo só com o que ele faz bem: resumir, agrupar assunto
-e classificar sentimento. Se um número vier errado no relatório, ninguém confia no
-resto.
+em JavaScript. Deixei o modelo só com o que ele faz bem, que é resumir, agrupar
+assunto e classificar sentimento. Se um número vier errado no relatório, ninguém
+confia no resto.
 
 A chamada usa o `responseSchema` do Gemini, então a resposta já chega como JSON
 estruturado. Na primeira versão eu tentei extrair com regex de um texto solto e
 quebrava toda hora.
 
 Se a IA falhar, o relatório sai mesmo assim, com as métricas e o motivo do erro
-no lugar do resumo. Isso salvou muito tempo de depuração: enquanto a mensagem era
-genérica, eu não fazia ideia se era chave, cota ou modelo.
+no lugar do resumo. Isso salvou muito tempo de depuração. Enquanto a mensagem era
+genérica, eu não fazia ideia se o problema era a chave, a cota ou o modelo.
 
-Para a IA vai o mínimo: nota, sabor e comentário. Nome, e-mail e telefone não saem
-da planilha, e tem teste verificando isso.
+Para a IA vai o mínimo, só nota, sabor e comentário. Nome, e-mail e telefone não
+saem da planilha, e tem teste verificando isso.
 
 ---
 
@@ -128,8 +128,8 @@ nodes e a planilha modelo, então elas não saem de sincronia.
 ## Editando a página
 
 O `site/formulario.html` está dividido em seis seções comentadas. Duas delas dá
-para mexer sem saber programar: a de textos, que tem todas as frases da página em
-um objeto só, e a de tema, que tem as cores e tamanhos em variáveis CSS.
+para mexer sem saber programar. Uma tem todas as frases da página em um objeto
+só, e a outra tem as cores e tamanhos em variáveis CSS.
 
 Depois de editar, é só rodar `make workflow` para embutir a nova versão no
 workflow 2.
@@ -148,12 +148,12 @@ make planilha        # gera planilha/modelo_planilha.xlsx
 1. Suba `planilha/modelo_planilha.xlsx` no Drive e abra como Planilhas Google
 2. Importe os três arquivos de `workflows/` no n8n
 3. Em cada workflow, abra o node **Configuração** e cole o ID da planilha
-4. Conecte as credenciais: Google Sheets, SMTP e a chave do Gemini
+4. Conecte as credenciais do Google Sheets, do SMTP e do Gemini
 5. Rode o workflow 1 na mão — o convite chega no seu e-mail
 
 Os detalhes de cada credencial estão no [`GUIA_SETUP.md`](GUIA_SETUP.md).
 
-Para ver a página sem configurar nada:
+Dá para ver a página sem configurar nada.
 
 ```bash
 make demo    # sobe um n8n falso e serve o formulário em localhost:8080
@@ -187,9 +187,10 @@ São 91 verificações e rodam em menos de um segundo, sem planilha, sem SMTP e 
 chave de IA. O `tests/test_code_nodes.mjs` executa o JavaScript de verdade dos
 nodes `Code` com `$input`, `$json` e `$()` simulados.
 
-O `tests/test_estrutura.py` confere o desenho do fluxo: se toda conexão aponta
-para um node que existe, se todo `$('X')` referencia um node que vem antes no
-caminho, se sobrou node solto e se todo webhook chega em um Respond to Webhook.
+O `tests/test_estrutura.py` confere o desenho do fluxo. Ele verifica se toda
+conexão aponta para um node que existe, se todo `$('X')` referencia um node que
+vem antes no caminho, se sobrou node solto e se todo webhook chega em um Respond
+to Webhook.
 
 Essa segunda suíte eu só escrevi depois de perder um tempão com um bug. O node
 `Configuração` estava ligado só ao webhook GET, então na rota POST ele nunca
@@ -225,7 +226,7 @@ Makefile                        `make ajuda` lista tudo
 ## O que eu faria diferente
 
 **Google Sheets não é banco.** Passando de alguns milhares de respostas as
-leituras ficam lentas, e não tem transação: em teoria, duas respostas do mesmo
+leituras ficam lentas, e não tem transação. Em teoria, duas respostas do mesmo
 token ao mesmo tempo poderiam gravar duas linhas. Para volume de verdade eu
 usaria Postgres.
 
