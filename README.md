@@ -1,136 +1,144 @@
-# Mangut Sorbet - Feedbacks
+# Mangut Sorbet — Feedbacks
 
-Pesquisa de satisfação automatizada, com foco em melhoria com base no feedback de clientes.
+Pesquisa de satisfação automatizada, com foco em melhorar o produto a partir do
+que o cliente responde.
 
-Uma sorveteria montou um quiosque no ibirapuera e resolveram apostar em novos sabores voltados ao gosto do paulistano,
-gostariam de saber se estavam acertando no sabor, textura e etc. criamos uma automação que coleta essas avaliações em tempo real e transforma em insights dos novos sabores.
+Uma sorveteria montou um quiosque no Ibirapuera e resolveu apostar em sabores
+novos, pensados para o gosto do paulistano. Eles queriam saber se estavam
+acertando no sabor, na textura, no preço. O caixa não responde isso: venda alta
+pode ser só curiosidade, e quem não gostou quase nunca volta para reclamar.
+
+Então montei essa automação. Um dia depois da compra o cliente recebe um link só
+dele, dá uma nota de 0 a 10 e escreve o que quiser em 30 segundos. A resposta cai
+numa planilha na hora e, toda segunda, vira um relatório por e-mail com o NPS, a
+nota média e os assuntos que mais apareceram nos comentários.
 
 `n8n` · `Google Sheets` · `Gemini` · `JavaScript` · `Python` · `SMTP`
 
-Três workflows, um formulário e nenhuma ferramenta paga. O setup completo está
-em [`GUIA_SETUP.md`](GUIA_SETUP.md).
+São três workflows, um formulário e nenhuma ferramenta paga. O passo a passo de
+instalação está no [`GUIA_SETUP.md`](GUIA_SETUP.md).
 
 ---
 
 ## 1. O convite
 
 A cada 15 minutos o fluxo lê a aba `vendas`, separa quem comprou há mais de 24
-horas e ainda não foi convidado, gera um token de 24 caracteres para cada um e
-dispara o e-mail. O token volta para a planilha, que é o controle de "já
-mandei".
+horas e ainda não recebeu convite, gera um token de 24 caracteres para cada um e
+manda o e-mail. Depois grava o token de volta na planilha, que é como o fluxo
+sabe que já mandou.
 
 ![Workflow 1 no n8n](docs/fluxo-1.png)
 
-O e-mail é curto de propósito. Um pedido, um botão, uma saída. E-mail de
-pesquisa comprido é e-mail não respondido.
+Deixei o e-mail bem curto: uma frase, um botão e o link em texto embaixo, caso o
+botão não funcione no cliente de e-mail da pessoa.
 
 ![E-mail de convite](docs/email_convite.png)
 
-A espera de 24 horas não é detalhe: pedir avaliação no minuto seguinte ao
-pagamento é pedir avaliação de um produto que o cliente ainda não provou.
+A espera de 24 horas foi de propósito. Se o convite sair logo depois do
+pagamento, o cliente ainda nem provou o sorvete, e a nota não quer dizer nada.
 
 ---
 
 ## 2. O formulário
 
-O link do e-mail cai num webhook GET. O n8n procura o token na planilha e
-devolve a página **já com o nome e o sabor dentro do HTML**. Não existe uma
-segunda requisição buscando os dados depois.
+O link do e-mail cai num webhook GET. O n8n procura o token na planilha e devolve
+a página já com o nome e o sabor dentro do HTML. Não tem uma segunda requisição
+buscando esses dados depois.
 
 ![Workflow 2 no n8n](docs/fluxo-2.png)
 
-Isso resolve três coisas de uma vez: some o pisca-pisca de placeholder, cai uma
-requisição, e a página passa a sair da mesma origem dos webhooks — o que zera
-qualquer configuração de CORS.
+Comecei fazendo do jeito comum, com a página buscando os dados por `fetch` depois
+de carregar, e travei no CORS. Passei um tempo tentando configurar cabeçalho até
+perceber que dava para o próprio n8n devolver a página pronta. Aí o problema
+sumiu junto: mesma origem, sem CORS, e ainda economizou uma requisição e o
+efeito de placeholder piscando na tela.
 
 ![Formulário](docs/formulario.png)
 
-O cliente nunca digita o que a sorveteria já sabe. Nome, sabor e telefone vêm
-da venda. A pergunta é *"Oi, Camila, que tal o sorvete?"*, não *"informe seu
-nome"*.
+O cliente não digita nada que a sorveteria já sabe. Nome, sabor e telefone vêm da
+venda, então a pergunta é *"Oi, Camila, que tal o sorvete?"* em vez de pedir para
+ele se identificar.
 
-O texto responde à nota. Quem dá 3 lê *"Poxa, desculpa por isso"* e o comentário
-vira obrigatório. Quem dá 10 lê *"Que ótimo saber disso!"*. Uma pesquisa que
-responde igual para os dois é um formulário, não uma conversa.
+O texto muda conforme a nota. Quem dá 3 lê *"Poxa, desculpa por isso"* e o
+comentário passa a ser obrigatório. Quem dá 10 lê *"Que ótimo saber disso!"*.
+Achei que isso ajudaria a trazer mais comentário escrito de quem teve problema,
+que é justamente quem costuma não escrever nada.
 
-Cada estado tem tela própria: link inválido, já respondido, carregando, erro de
-envio, sucesso. A tela de erro avisa que as respostas continuam preenchidas.
+Cada situação tem uma tela: link inválido, já respondido, carregando, erro no
+envio e sucesso. Na tela de erro eu aviso que as respostas continuam preenchidas,
+porque a primeira versão apagava tudo e era frustrante de testar.
 
-A escala 0–10 é um `radiogroup` navegável pelas setas do teclado, com
-`aria-label` por opção. Cor nunca carrega significado sozinha — toda faixa de
-nota vem com texto junto.
+A escala de 0 a 10 é um `radiogroup` que funciona com as setas do teclado e tem
+`aria-label` em cada opção. Também tomei o cuidado de nunca usar só cor para
+indicar coisa: toda faixa de nota tem texto junto.
 
 ---
 
 ## 3. O relatório
 
-Toda segunda às 9h o fluxo lê as respostas ainda não analisadas, calcula as
-métricas em JavaScript, manda só os comentários para o Gemini e monta o e-mail.
+Toda segunda às 9h o fluxo lê as respostas que ainda não foram analisadas,
+calcula as métricas em JavaScript, manda só os comentários para o Gemini e monta
+o e-mail.
 
 ![Workflow 3 no n8n](docs/fluxo-3.png)
 
 ![Relatório semanal](docs/relatorio_semanal.png)
 
-**A IA não calcula nada.** NPS, média e contagem de promotores e detratores são
-JavaScript. O modelo faz só o que modelo de linguagem faz bem: resumir, agrupar
-tema e classificar sentimento. Número errado num relatório destrói a confiança
-no projeto inteiro, e LLM não é calculadora.
+A IA não calcula nada. NPS, média e contagem de promotores e detratores são feitos
+em JavaScript. Deixei o modelo só com o que ele faz bem: resumir, agrupar assunto
+e classificar sentimento. Se um número vier errado no relatório, ninguém confia no
+resto.
 
-**A saída da IA tem schema.** A chamada usa `responseSchema`, então o node
-seguinte recebe JSON validado em vez de um texto para adivinhar com regex.
+A chamada usa o `responseSchema` do Gemini, então a resposta já chega como JSON
+estruturado. Na primeira versão eu tentei extrair com regex de um texto solto e
+quebrava toda hora.
 
-**A IA pode falhar sem derrubar o pipeline.** Se o Gemini der timeout, estourar
-cota ou devolver algo inesperado, o relatório sai mesmo assim — com as métricas
-e o motivo real da falha no lugar do resumo.
+Se a IA falhar, o relatório sai mesmo assim, com as métricas e o motivo do erro
+no lugar do resumo. Isso salvou muito tempo de depuração: enquanto a mensagem era
+genérica, eu não fazia ideia se era chave, cota ou modelo.
 
-**Vai o mínimo para a IA.** Só nota, sabor e comentário. Nome, e-mail e telefone
-do cliente nunca saem da planilha. Tem teste garantindo isso.
+Para a IA vai o mínimo: nota, sabor e comentário. Nome, e-mail e telefone não saem
+da planilha, e tem teste verificando isso.
 
 ---
 
-## Outras decisões
+## Algumas decisões
 
-**A planilha é a fonte da verdade, nunca o navegador.** O que chega no POST é
-tratado como dado hostil: nome, e-mail e sabor gravados vêm sempre da linha da
-venda. O navegador só opina sobre nota, comentário e telefone.
+**A planilha manda, não o navegador.** O que chega no POST eu trato como dado não
+confiável. Nome, e-mail e sabor gravados vêm sempre da linha da venda, então não
+dá para alguém mandar uma resposta em nome de outra pessoa.
 
-**Cada recusa tem um código HTTP próprio.** Token inexistente responde 404,
-resposta duplicada 409, nota fora da faixa 400 — e o robô que caiu no honeypot
-recebe **200**, porque avisar um bot de que ele foi detectado só ajuda o bot.
+**Cada recusa tem um código HTTP.** Token que não existe responde 404, resposta
+repetida responde 409, nota fora da faixa responde 400. O robô que preenche o
+campo escondido recebe 200, porque avisar que ele foi pego só ajudaria ele a
+tentar de novo.
 
-**O token é gravado, não assinado.** Cada convite gera uma string aleatória que
-vira a chave de busca. É revogável apagando a célula e não depende de segredo
-nenhum no código.
+**O token é sorteado e guardado, não assinado.** Cada convite gera uma string
+aleatória que vira a chave de busca. Dá para revogar apagando a célula e não
+depende de nenhum segredo no código.
 
-**Os workflows são gerados, não editados à mão.** `tests/gerar_workflows.py`
-monta os 41 nodes a partir de Python legível e embute `site/formulario.html` na
-hora da geração — então a página continua sendo um `.html` de verdade, editável
-em qualquer editor. As colunas da planilha são declaradas uma vez e alimentam
-tanto o schema dos nodes quanto a planilha modelo, que por isso nunca saem de
-sincronia.
+**Os JSONs dos workflows são gerados por script.** `tests/gerar_workflows.py`
+monta os 41 nodes e embute o `site/formulario.html` na hora de gerar. Fiz assim
+porque editar JSON de 2 mil linhas na mão é pedir para errar, e porque as colunas
+da planilha ficam declaradas em um lugar só — as mesmas alimentam o schema dos
+nodes e a planilha modelo, então elas não saem de sincronia.
 
 ---
 
 ## Editando a página
 
-O `site/formulario.html` está dividido em seis blocos marcados com comentário.
-Dois deles são para editar sem saber programar:
+O `site/formulario.html` está dividido em seis seções comentadas. Duas delas dá
+para mexer sem saber programar: a de textos, que tem todas as frases da página em
+um objeto só, e a de tema, que tem as cores e tamanhos em variáveis CSS.
 
-- **BLOCO 2 · TEXTOS** — toda frase da página num objeto só, incluindo as que
-  mudam conforme a nota
-- **BLOCO 3 · TEMA** — cores, fontes e tamanhos em variáveis CSS
-
-Os outros quatro (técnico, layout, estrutura, lógica) não precisam ser tocados
-para mudar aparência ou texto.
-
-Depois de editar, rode `make workflow` para reembutir a página no workflow 2.
+Depois de editar, é só rodar `make workflow` para embutir a nova versão no
+workflow 2.
 
 ---
 
 ## Rodando
 
-Você precisa de n8n rodando local, uma conta Google e uma chave gratuita do
-Gemini. O passo a passo completo está em [`GUIA_SETUP.md`](GUIA_SETUP.md).
+Precisa de n8n rodando local, uma conta Google e uma chave gratuita do Gemini.
 
 ```bash
 git clone <seu-repo> && cd feedback-pos-compra
@@ -143,13 +151,15 @@ make planilha        # gera planilha/modelo_planilha.xlsx
 4. Conecte as credenciais: Google Sheets, SMTP e a chave do Gemini
 5. Rode o workflow 1 na mão — o convite chega no seu e-mail
 
-Para ver a página sem subir nada:
+Os detalhes de cada credencial estão no [`GUIA_SETUP.md`](GUIA_SETUP.md).
+
+Para ver a página sem configurar nada:
 
 ```bash
 make demo    # sobe um n8n falso e serve o formulário em localhost:8080
 ```
 
-Os tokens `demo-1`, `demo-2` e `demo-usada` exercitam todos os estados.
+Os tokens `demo-1`, `demo-2` e `demo-usada` cobrem todas as telas.
 
 ---
 
@@ -173,16 +183,19 @@ WORKFLOW 3 · Consolidar Análise
   ✓ métricas saem mesmo com a IA fora do ar
 ```
 
-São 91 verificações em menos de um segundo, sem planilha, sem SMTP e sem chave
-de IA. `tests/test_code_nodes.mjs` executa o JavaScript real dos nodes `Code`
-com `$input`, `$json` e `$()` simulados.
+São 91 verificações e rodam em menos de um segundo, sem planilha, sem SMTP e sem
+chave de IA. O `tests/test_code_nodes.mjs` executa o JavaScript de verdade dos
+nodes `Code` com `$input`, `$json` e `$()` simulados.
 
-`tests/test_estrutura.py` valida o grafo: se toda conexão aponta para um node
-que existe, se todo `$('X')` referencia um node que é **ancestral** de quem o
-chama, se sobrou node órfão e se todo webhook alcança um Respond to Webhook.
-Essa suíte nasceu de um bug real — o node `Configuração` estava ligado só ao
-webhook GET, e na rota POST ele nunca executava. O erro aparecia três nodes
-depois, disfarçado de "token inválido".
+O `tests/test_estrutura.py` confere o desenho do fluxo: se toda conexão aponta
+para um node que existe, se todo `$('X')` referencia um node que vem antes no
+caminho, se sobrou node solto e se todo webhook chega em um Respond to Webhook.
+
+Essa segunda suíte eu só escrevi depois de perder um tempão com um bug. O node
+`Configuração` estava ligado só ao webhook GET, então na rota POST ele nunca
+rodava e todas as expressões que dependiam dele falhavam. O erro só aparecia três
+nodes depois, disfarçado de "token inválido", e eu fiquei procurando no lugar
+errado. Agora um teste pega isso em segundos.
 
 ---
 
@@ -193,45 +206,47 @@ site/formulario.html            a página (embutida no workflow 2 na geração)
 workflows/                      os três JSONs prontos para importar
 planilha/modelo_planilha.xlsx   abas vendas · respostas · analise · painel
 scripts/gerar_planilha.py       gera a planilha modelo
-tests/gerar_workflows.py        gerador dos workflows (fonte da verdade)
-tests/test_code_nodes.mjs       lógica dos nodes Code
-tests/test_estrutura.py         validação do grafo
+tests/gerar_workflows.py        gerador dos workflows
+tests/test_code_nodes.mjs       testes da lógica dos nodes Code
+tests/test_estrutura.py         testes do desenho do fluxo
 tests/n8n_falso.py              webhooks simulados para desenvolvimento
 Makefile                        `make ajuda` lista tudo
 ```
 
 | Aba | Quem preenche | Para quê |
 |---|---|---|
-| `vendas` | você (ou a loja) + workflow 1 | fila de convites; `token` e `convite_enviado_em` são o controle de "já mandei" |
+| `vendas` | a loja + workflow 1 | fila de convites; `token` e `convite_enviado_em` controlam o que já foi enviado |
 | `respostas` | workflow 2 + workflow 3 | uma linha por avaliação, com nota, classificação NPS, comentário e depois sentimento e temas |
 | `analise` | workflow 3 | uma linha por execução: NPS do período, resumo da IA, temas e ações |
 | `painel` | fórmulas | NPS, nota média e distribuição ao vivo, sem depender de workflow nenhum |
 
 ---
 
-## Limitações conhecidas
+## O que eu faria diferente
 
-**Google Sheets não é banco.** Acima de alguns milhares de respostas as leituras
-ficam lentas e não há transação — duas respostas simultâneas do mesmo token
-poderiam, em tese, gravar duas linhas. Para volume real, o caminho é Postgres.
+**Google Sheets não é banco.** Passando de alguns milhares de respostas as
+leituras ficam lentas, e não tem transação: em teoria, duas respostas do mesmo
+token ao mesmo tempo poderiam gravar duas linhas. Para volume de verdade eu
+usaria Postgres.
 
-**O token não expira.** Quem guardar o link consegue abrir a página depois; só
-não consegue responder de novo. Um campo `expira_em` na aba `vendas` resolveria.
+**O token não expira.** Quem guardar o link consegue abrir a página depois. Não
+consegue responder de novo, mas um campo `expira_em` na aba `vendas` resolveria
+direito.
 
-**Sem alerta imediato de nota baixa.** Hoje o detrator aparece só no relatório
-semanal. Um `IF` depois de `Gravar na Planilha` mandando e-mail quando a nota
-for ≤ 6 seria o próximo node.
+**Nota baixa deveria avisar na hora.** Hoje o cliente insatisfeito só aparece no
+relatório de segunda. Um `IF` depois de gravar na planilha já resolveria, e é o
+primeiro item da lista abaixo.
 
-**O n8n precisa estar acessível pelo cliente.** Em `localhost` o link do e-mail
-só funciona na sua máquina; para valer de verdade, exponha por túnel ou
-hospede.
+**O n8n precisa estar acessível pelo cliente.** Em `localhost` o link do e-mail só
+abre na minha máquina. Para valer de verdade precisa de túnel ou de hospedar o
+n8n.
 
 ---
 
 ## Próximos passos
 
-- [ ] Alerta na hora quando a nota for ≤ 6, com o telefone do cliente junto
+- [ ] Avisar na hora quando a nota for ≤ 6, com o telefone do cliente junto
 - [ ] Lembrete automático para quem não respondeu em 3 dias
 - [ ] Trocar Google Sheets por Postgres e plugar um BI
-- [ ] Webhook `POST /nova-venda` para a loja empurrar a venda
-- [ ] Comparar temas entre períodos ("espera na fila" subiu 40% este mês)
+- [ ] Webhook `POST /nova-venda` para a loja empurrar a venda em vez de esperar o polling
+- [ ] Comparar temas entre semanas, para ver o que está subindo
