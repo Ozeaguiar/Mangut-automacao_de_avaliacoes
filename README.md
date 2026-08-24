@@ -1,4 +1,4 @@
-# Mangut Sorbet · Feedbacks
+# Mangut Sorbet · Avaliações de clientes
 
 Pesquisa de satisfação automatizada, com foco em melhorar o produto a partir do
 que o cliente responde.
