@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Seções: 1 config · 2 textos · 3 tema · 4 layout · 5 estrutura · 6 lógica.
+     Texto e aparência ficam inteiramente nas seções 2 e 3. -->
+
+<title data-txt="tituloAba">Como foi sua experiência?</title>
+
+<!-- 1 · Configuração
+     A página é servida pelo próprio n8n (webhook GET /webhook/feedback), então
+     N8N_BASE fica vazio: mesma origem, sem CORS. -->
+<script>
+  window.CONFIG = {
+    N8N_BASE: '',                             // mesma origem — não mexa
+    ROTA_ENVIO: '/webhook/feedback/enviar',   // POST — grava a resposta
+
+    // O nome da empresa vem SEMPRE do node Configuração do n8n, em todas as
+    // telas. Deixar vazio aqui é proposital: assim nenhum nome de exemplo
+    // pode aparecer para o cliente se algo falhar.
+    EMPRESA: '',
+
+    // Modo desenvolvimento: quando o HTML é aberto direto (sem passar pelo
+    // n8n), os dados da venda são buscados aqui. Ver tests/n8n_falso.py.
+    BASE_DEV: 'http://localhost:5678',
+    ROTA_DADOS_DEV: '/webhook/feedback/dados',
+  };
+</script>
+
+<!-- O n8n substitui o placeholder abaixo pelos dados da venda antes de
+     devolver a página. Renderizar no servidor evita uma segunda requisição
+     e faz o nome do cliente já vir no HTML. -->
+<script id="dados-venda" type="application/json">__DADOS_DA_VENDA__</script>
+
+<!-- 2 · Textos
+     Toda frase que o cliente vê. -->
+<script>
+  window.TEXTOS = {
+    tituloAba: 'Que tal o sorvete?',
+
+    // logo embutida como data URI; aceita URL também. '' esconde.
+    logo: 'data:image/png;base64,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',
+
+    tituloScript: 'Sua Experiência',          // a palavra grande em fonte manuscrita
+    seloSubtitulo: 'Avaliação da visita',
+
+    // ---- ficha do topo (as quatro linhas em caixa alta) ----
+    metaClienteRotulo: 'Cliente',
+    metaProdutoRotulo: 'Sabor',
+    metaDuracaoRotulo: 'Avaliação',
+    metaDuracaoValor: '30 segundos',
+    metaDataRotulo: 'Data',
+    clientePadrao: 'Cliente',
+
+    // ---- chamada principal ----
+    saudacaoPadrao: 'Olá',
+    saudacaoComNomePrefixo: 'Oi, ',
+    h1Sufixo: ', que tal o sorvete?',
+    subPrefixo: 'Você levou ',
+    subSufixo: '. São 30 segundos e ajudam a gente a acertar a próxima fornada.',
+    produtoPadrao: 'seu sorvete',
+
+    // campo escondido contra robôs — pessoas nunca veem isso
+    honeypotLabel: 'Não preencha este campo',
+
+    // ---- pergunta principal (nota de 0 a 10) ----
+    notaLegenda: 'Recomendação',
+    notaDica: 'Nota de 0 a 10',
+    notaPontaEsquerda: '0 · não indicaria',
+    notaPontaDireita: 'indicaria com certeza · 10',
+    notaAriaLabelPrefixo: 'Nota ',
+    notaErro: 'Escolha uma nota de 0 a 10 para continuar.',
+
+    // ---- campo de comentário ----
+    obsLabel: 'Comentário',
+    obsAjudaPadrao: 'Opcional',
+    obsAjudaObrigatoria: 'Importante aqui',
+    obsPlaceholderPadrao: 'Sabor, textura, doçura, atendimento…',
+    obsErro: 'Conta rapidinho o que deu errado — é assim que a gente conserta.',
+
+    // ---- campo de telefone ----
+    telLabel: 'Telefone',
+    telAjuda: 'Usamos só se você pedir retorno',
+    telPlaceholder: '(11) 90000-0000',
+    telErro: 'Telefone incompleto — use DDD + número, ou deixe em branco.',
+
+    // ---- botão e rodapé ----
+    botaoEnviar: 'Enviar avaliação',
+    botaoEnviando: 'Enviando…',
+    botaoTentarDeNovo: 'Tentar de novo',
+    rodapeLinha1: 'Suas respostas vão só',
+    rodapeLinha2: 'para o time da ',
+
+    // acessibilidade — lido por leitor de tela, ninguém vê na tela
+    carregandoOculto: 'Carregando seus dados…',
+
+    // ---- tela de link inválido ----
+    invalidoTitulo: 'Este link não é mais válido',
+    invalidoTexto: 'Ele pode ter expirado ou sido copiado pela metade. Abra o ' +
+      'link direto do e-mail que você recebeu — ou responda aquele e-mail que ' +
+      'a gente reenvia.',
+
+    // ---- tela de "você já respondeu" ----
+    repetidoTitulo: 'Você já respondeu — obrigado!',
+    repetidoPrefixo: 'Sua avaliação foi registrada em ',
+    repetidoSufixo: '. Se quiser complementar alguma coisa, é só responder o ' +
+      'e-mail que enviamos.',
+    dataDesconhecida: 'outro dia',
+
+    // ---- aviso de falha ao enviar ----
+    falhaEnvioTitulo: 'Não conseguimos enviar agora.',
+    falhaEnvioTexto: 'Confira a conexão e tente de novo — suas respostas ' +
+      'continuam preenchidas aqui.',
+
+    // Textos por faixa de nota. obrigaTexto torna o comentário obrigatório.
+    zonas: {
+      critico: {
+        titulo: 'Poxa, desculpa por isso.',
+        texto: 'Conta o que não agradou que a gente ajusta a receita.',
+        placeholder: 'O que não agradou? Pode ser direto.',
+        obrigaTexto: true,
+        sucessoTitulo: 'Recebemos — e vamos te procurar.',
+        sucessoTexto: 'Alguém do time vai entrar em contato para resolver ' +
+          'isso. Desculpa pelo transtorno.',
+      },
+      neutro: {
+        titulo: 'Valeu pela sinceridade.',
+        texto: 'O que faltaria para virar um 10?',
+        placeholder: 'O que faltaria para ser nota máxima?',
+        obrigaTexto: false,
+        sucessoTitulo: 'Obrigado pela avaliação!',
+        sucessoTexto: 'Sua observação vai direto para quem faz o sorvete. ' +
+          'Valeu pelo tempo!',
+      },
+      bom: {
+        titulo: 'Que ótimo saber disso!',
+        texto: 'Qual sabor te conquistou?',
+        placeholder: 'Qual sabor te conquistou?',
+        obrigaTexto: false,
+        sucessoTitulo: 'Obrigado pela avaliação!',
+        sucessoTexto: 'Ficamos felizes que você gostou. Comentários assim ' +
+          'ajudam outras pessoas a escolher o sabor.',
+      },
+    },
+  };
+
+  // Limite superior de cada faixa, na escala de 0 a 10.
+  window.FAIXAS = { critico_ate: 6, neutro_ate: 8 };
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kaushan+Script&display=swap" rel="stylesheet">
+
+<style>
+  /* 3 · Tema — cor, fonte e sombra da página inteira. */
+  :root {
+    color-scheme: light;
+    /* paleta da marca — Feldgrau + Wheat */
+    --verde:#3A4B41; --verde-escuro:#24302a; --papel:#E6CFA7;
+    --linha:rgba(58,75,65,.45); --linha-fraca:rgba(58,75,65,.25);
+    --ink:#3A4B41; --ink-2:rgba(58,75,65,.85); --ink-3:rgba(58,75,65,.65);
+    --critico:#8c2f22; --atencao:#8a5d00; --bom:#2c5c3a;
+    --sombra:0 34px 70px -24px rgba(0,0,0,.55), 0 2px 0 rgba(0,0,0,.12);
+
+    --logo-altura:52px;
+
+    /* Título longo precisa de fonte menor para não empurrar a logo para baixo. */
+    --titulo-tamanho:52px;
+    --titulo-tamanho-celular:40px;
+
+    --fonte:Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --fonte-titulo:"Kaushan Script", cursive;
+  }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none!important; transition:none!important } }
+
+  /* 4 · Layout — posicionamento e tamanho. As cores vêm todas da seção 3. */
+  * { box-sizing:border-box }
+  html, body { height:100% }
+  body {
+    margin:0; padding:64px 24px 72px; background:var(--verde); color:var(--ink);
+    font:16px/1.55 var(--fonte);
+    -webkit-font-smoothing:antialiased;
+  }
+  .folha {
+    max-width:660px; margin:0 auto; background:var(--papel);
+    box-shadow:var(--sombra); padding:56px 56px 48px;
+  }
+  @media (max-width:600px) {
+    body { padding:0 }
+    .folha { min-height:100vh; padding:36px 22px 34px; box-shadow:none }
+  }
+
+  /* ---- cabeçalho estilo fatura ---- */
+  .topo { display:flex; align-items:baseline; justify-content:space-between; gap:24px; flex-wrap:wrap }
+  .titulo-script {
+    font-family:var(--fonte-titulo); font-size:var(--titulo-tamanho);
+    line-height:.95; color:var(--verde); min-width:0;
+  }
+  @media (max-width:600px) { .titulo-script { font-size:var(--titulo-tamanho-celular) } }
+  .selo-marca { text-align:right; font-size:11px; letter-spacing:.14em; text-transform:uppercase; line-height:1.9 }
+  .selo-marca .fraco { color:var(--ink-3) }
+  .selo-marca .logo {
+    display:block; margin:0 0 10px auto; max-height:var(--logo-altura);
+    max-width:190px; width:auto; height:auto;
+  }
+  .selo-marca .logo:not([src]), .selo-marca .logo[src=""] { display:none }
+  @media (max-width:600px) { .selo-marca .logo { margin-left:0 } }
+
+  .meta { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px;
+          font-size:12px; letter-spacing:.1em; text-transform:uppercase; line-height:2 }
+  .meta .dir { text-align:right }
+  .meta dt { color:var(--ink-3) }
+  .meta dd { margin:0; font-weight:600 }
+  .meta dt + dd { margin-bottom:12px }
+  @media (max-width:600px) { .meta { grid-template-columns:1fr } .meta .dir { text-align:left } }
+
+  .regua { height:2px; background:var(--verde); border:0; margin:28px 0 0 }
+  .regua.fim { margin:40px 0 26px }
+
+  h1 { margin:0; font-size:22px; line-height:1.3; letter-spacing:-.01em; font-weight:600 }
+  .sub { margin:8px 0 0; color:var(--ink-2); font-size:15px; text-wrap:pretty }
+  .produto { font-weight:600; color:var(--ink) }
+
+  fieldset { border:0; margin:0; padding:0 }
+  .rot-linha { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:22px 0 14px }
+  legend, .rotulo { padding:0; font-size:13px; font-weight:700; letter-spacing:.12em;
+                    text-transform:uppercase; color:var(--verde) }
+  .ajuda { margin:0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3) }
+
+  /* ---- escala NPS 0–10 ---- */
+  .escala { display:grid; grid-template-columns:repeat(11,1fr); gap:8px }
+  @media (max-width:600px) { .escala { grid-template-columns:repeat(6,1fr) } }
+  .escala button {
+    appearance:none; font:inherit; font-weight:500; font-variant-numeric:tabular-nums;
+    min-height:48px; padding:0; cursor:pointer; border-radius:0;
+    background:transparent; color:var(--verde); border:1px solid var(--linha);
+    transition:background .12s, color .12s, border-color .12s;
+  }
+  .escala button:hover { background:rgba(58,75,65,.12); border-color:var(--verde) }
+  .escala button:focus-visible { outline:2px solid var(--verde); outline-offset:2px }
+  .escala button[aria-checked="true"] { background:var(--verde); color:var(--papel); border-color:var(--verde) }
+
+  .pontas { display:flex; justify-content:space-between; gap:16px; margin-top:10px;
+            font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3) }
+
+  /* reação à nota escolhida — rótulo textual, nunca só cor */
+  .reacao { display:none; margin-top:24px; padding:16px 0;
+            border-top:1px solid var(--linha-fraca); border-bottom:1px solid var(--linha-fraca) }
+  .reacao.ativa { display:block }
+  .reacao b { display:block; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase }
+  .reacao span.texto { display:block; margin-top:6px; font-size:15px; color:var(--ink-2) }
+  .reacao[data-zona="critico"] b { color:var(--critico) }
+  .reacao[data-zona="neutro"]  b { color:var(--atencao) }
+  .reacao[data-zona="bom"]     b { color:var(--bom) }
+
+  /* ---- campos: linhas de fatura, não caixas ---- */
+  input[type=text], input[type=tel], textarea {
+    width:100%; font:inherit; font-size:16px; color:var(--ink); background:transparent;
+    border:0; border-bottom:1px solid var(--linha); border-radius:0; padding:10px 0 12px;
+    transition:border-color .12s;
+  }
+  textarea { min-height:104px; resize:vertical; line-height:1.6 }
+  input::placeholder, textarea::placeholder { color:rgba(58,75,65,.45) }
+  input:focus, textarea:focus { outline:none; border-bottom-color:var(--verde); border-bottom-width:2px; padding-bottom:11px }
+  .contador { text-align:right; margin-top:8px; font-size:11px; letter-spacing:.1em;
+              color:var(--ink-3); font-variant-numeric:tabular-nums }
+  .contador.limite { color:var(--critico) }
+
+  .linha-tel { display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:end; margin-top:26px }
+  .linha-tel .nota-lado { font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+                          color:var(--ink-3); line-height:1.9 }
+  @media (max-width:600px) { .linha-tel { grid-template-columns:1fr; gap:14px } }
+
+  .erro-campo { display:none; margin:8px 0 0; font-size:13px; color:var(--critico) }
+  .erro-campo.ativa { display:block }
+  [aria-invalid="true"] { border-bottom-color:var(--critico) }
+
+  /* ---- rodapé + botão ---- */
+  .acoes { display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap }
+  .rodape { margin:0; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+            color:var(--ink-3); line-height:1.9 }
+  button.enviar {
+    font:inherit; font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--papel); background:var(--verde); border:1px solid var(--verde); border-radius:0;
+    padding:18px 40px; cursor:pointer; transition:background .15s, color .15s, opacity .15s;
+  }
+  button.enviar:hover:not(:disabled) { background:var(--verde-escuro) }
+  button.enviar:focus-visible { outline:2px solid var(--verde); outline-offset:3px }
+  button.enviar:disabled { opacity:.55; cursor:not-allowed }
+  @media (max-width:600px) { button.enviar { width:100% } .acoes { flex-direction:column-reverse; align-items:stretch } }
+
+  /* ---- estados de tela ---- */
+  .tela { display:none } .tela.ativa { display:block }
+  .centro { padding:12px 0 8px }
+  .centro h2 { margin:20px 0 8px; font-size:20px; font-weight:600; letter-spacing:-.01em }
+  .centro p { margin:0; max-width:46ch; color:var(--ink-2); font-size:15px; text-wrap:pretty }
+  .selo { width:48px; height:48px; border:1px solid var(--linha); display:grid; place-items:center; color:var(--verde) }
+
+  .esqueleto { height:14px; background:rgba(58,75,65,.18); margin-bottom:10px;
+               animation:pulsa 1.3s ease-in-out infinite }
+  @keyframes pulsa { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .girando { width:14px; height:14px; border:2px solid rgba(230,207,167,.4);
+             border-top-color:var(--papel); border-radius:50%; display:inline-block;
+             vertical-align:-2px; margin-right:8px; animation:gira .7s linear infinite }
+  @keyframes gira { to { transform:rotate(360deg) } }
+
+  .alerta { display:flex; gap:10px; align-items:flex-start; margin-top:18px; padding:14px 0;
+            font-size:14px; color:var(--ink-2);
+            border-top:1px solid var(--critico); border-bottom:1px solid var(--critico) }
+  .alerta b { color:var(--critico) }
+  .oculto { display:none !important }
+  .visualmente-oculto { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+                        overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0 }
+</style>
+</head>
+
+<body>
+<!-- 5 · Estrutura
+     Os textos vêm de data-txt="chave", resolvido em tempo de execução a partir
+     da seção 2. Os id e class são usados pelo JS e pelos testes. -->
+<main class="folha">
+
+  <div class="topo">
+    <div class="titulo-script" data-txt="tituloScript">Feedback</div>
+    <div class="selo-marca">
+      <img class="logo" data-logo alt="" hidden>
+      <div data-empresa></div>
+      <div class="fraco" data-txt="seloSubtitulo">Avaliação de compra</div>
+    </div>
+  </div>
+
+  <!-- ============ 1. carregando ============ -->
+  <section class="tela ativa" id="tela-carregando" aria-busy="true">
+    <hr class="regua">
+    <div style="padding-top:28px">
+      <div class="esqueleto" style="width:60%;height:20px;margin-bottom:18px"></div>
+      <div class="esqueleto" style="width:90%"></div>
+      <div class="esqueleto" style="width:45%;margin-bottom:26px"></div>
+      <div class="esqueleto" style="height:48px"></div>
+    </div>
+    <span class="visualmente-oculto" data-txt="carregandoOculto">Carregando seus dados…</span>
+  </section>
+
+  <!-- ============ 2. link inválido ============ -->
+  <section class="tela centro" id="tela-invalido">
+    <hr class="regua" style="margin-bottom:32px">
+    <div class="selo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+    </div>
+    <h2 data-txt="invalidoTitulo">Este link não é mais válido</h2>
+    <p data-txt="invalidoTexto">Ele pode ter expirado ou sido copiado pela metade. Abra o link direto do
+       e-mail que você recebeu — ou responda aquele e-mail que a gente reenvia.</p>
+  </section>
+
+  <!-- ============ 3. já respondido ============ -->
+  <section class="tela centro" id="tela-repetido">
+    <hr class="regua" style="margin-bottom:32px">
+    <div class="selo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2 data-txt="repetidoTitulo">Você já respondeu — obrigado!</h2>
+    <p><span data-txt="repetidoPrefixo">Sua avaliação foi registrada em </span><b data-quando></b><span data-txt="repetidoSufixo">. Se quiser complementar
+       alguma coisa, é só responder o e-mail que enviamos.</span></p>
+  </section>
+
+  <!-- ============ 4. formulário ============ -->
+  <section class="tela" id="tela-formulario">
+
+    <dl class="meta">
+      <div>
+        <dt data-txt="metaClienteRotulo">Cliente</dt>
+        <dd data-cliente>—</dd>
+        <dt data-txt="metaProdutoRotulo">Produto</dt>
+        <dd class="produto" data-produto>—</dd>
+      </div>
+      <div class="dir">
+        <dt data-txt="metaDuracaoRotulo">Avaliação</dt>
+        <dd data-txt="metaDuracaoValor">30 segundos</dd>
+        <dt data-txt="metaDataRotulo">Data</dt>
+        <dd data-hoje>—</dd>
+      </div>
+    </dl>
+
+    <hr class="regua">
+
+    <div style="padding-top:24px">
+      <h1><span data-saudacao>Olá</span><span data-txt="h1Sufixo">, como foi sua experiência?</span></h1>
+      <p class="sub"><span data-txt="subPrefixo">Você comprou </span><span class="produto" data-produto>—</span><span data-txt="subSufixo">. São 30 segundos e ajuda muito a gente a melhorar.</span></p>
+    </div>
+
+    <form id="formulario" novalidate>
+      <!-- armadilha para robôs: humano nunca preenche um campo escondido -->
+      <div class="visualmente-oculto" aria-hidden="true">
+        <label><span data-txt="honeypotLabel">Não preencha este campo</span><input type="text" name="empresa_site" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <fieldset>
+        <div class="rot-linha">
+          <legend id="rot-nota" data-txt="notaLegenda">Recomendação</legend>
+          <p class="ajuda" id="dica-nota" data-txt="notaDica">Nota de 0 a 10</p>
+        </div>
+        <div class="escala" role="radiogroup" aria-labelledby="rot-nota" aria-describedby="dica-nota" id="escala"></div>
+        <div class="pontas"><span data-txt="notaPontaEsquerda">0 · não indicaria</span><span data-txt="notaPontaDireita">indicaria com certeza · 10</span></div>
+        <div class="reacao" id="reacao" role="status">
+          <b id="reacao-titulo"></b><span class="texto" id="reacao-texto"></span>
+        </div>
+        <p class="erro-campo" id="erro-nota" data-txt="notaErro">Escolha uma nota de 0 a 10 para continuar.</p>
+      </fieldset>
+
+      <fieldset style="margin-top:34px">
+        <div class="rot-linha" style="padding-top:0">
+          <label class="rotulo" for="observacoes" data-txt="obsLabel">Comentário</label>
+          <p class="ajuda" id="ajuda-obs" data-txt="obsAjudaPadrao">Opcional</p>
+        </div>
+        <textarea id="observacoes" name="observacoes" maxlength="1000"
+                  aria-describedby="ajuda-obs contador"
+                  data-txt-placeholder="obsPlaceholderPadrao"
+                  placeholder="Qualidade, entrega, embalagem…"></textarea>
+        <div class="contador" id="contador">0 / 1000</div>
+        <p class="erro-campo" id="erro-obs" data-txt="obsErro">Conta rapidinho o que deu errado — é assim que a gente conserta.</p>
+      </fieldset>
+
+      <fieldset>
+        <div class="linha-tel">
+          <div>
+            <div class="rot-linha" style="padding:0 0 12px">
+              <label class="rotulo" for="telefone" data-txt="telLabel">Telefone</label>
+            </div>
+            <input type="tel" id="telefone" name="telefone" inputmode="tel"
+                   autocomplete="tel" data-txt-placeholder="telPlaceholder" placeholder="(11) 90000-0000">
+          </div>
+          <div class="nota-lado" data-txt="telAjuda">Usamos só se você pedir retorno</div>
+        </div>
+        <p class="erro-campo" id="erro-tel" data-txt="telErro">Telefone incompleto — use DDD + número, ou deixe em branco.</p>
+      </fieldset>
+
+      <hr class="regua fim">
+
+      <div class="acoes">
+        <p class="rodape"><span data-txt="rodapeLinha1">Suas respostas vão só</span><br><span data-txt="rodapeLinha2">para o time da </span><span data-empresa></span></p>
+        <button type="submit" class="enviar" id="enviar" data-txt="botaoEnviar">Enviar avaliação</button>
+      </div>
+      <div id="falha-envio"></div>
+    </form>
+  </section>
+
+  <!-- ============ 5. sucesso ============ -->
+  <section class="tela centro" id="tela-sucesso">
+    <hr class="regua" style="margin-bottom:32px">
+    <div class="selo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2 id="sucesso-titulo">Obrigado!</h2>
+    <p id="sucesso-texto"></p>
+  </section>
+
+</main>
+
+<!-- 6 · Lógica -->
+<script>
+(() => {
+  'use strict';
+  const cfg = window.CONFIG;
+  const TEXTOS = window.TEXTOS;
+  const FAIXAS = window.FAIXAS;
+  const $ = (s) => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const token = (params.get('t') || '').trim();
+
+  const mostrar = (id) => {
+    document.querySelectorAll('.tela').forEach((t) => t.classList.toggle('ativa', t.id === id));
+    document.getElementById('tela-carregando').removeAttribute('aria-busy');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  /** Resolve data-txt e data-txt-placeholder a partir de TEXTOS. */
+  function aplicarTextos() {
+    document.querySelectorAll('[data-txt]').forEach((el) => {
+      const chave = el.dataset.txt;
+      if (typeof TEXTOS[chave] === 'string') el.textContent = TEXTOS[chave];
+    });
+    document.querySelectorAll('[data-txt-placeholder]').forEach((el) => {
+      const chave = el.dataset.txtPlaceholder;
+      if (typeof TEXTOS[chave] === 'string') el.setAttribute('placeholder', TEXTOS[chave]);
+    });
+  }
+  aplicarTextos();
+
+  /** O nome da empresa aparece em vários lugares; sai de um só. */
+  const definirMarca = (nome) => {
+    if (!nome) return;
+    document.querySelectorAll('[data-empresa]').forEach((e) => (e.textContent = nome));
+    document.title = `${TEXTOS.tituloAba} · ${nome}`;
+    const img = document.querySelector('[data-logo]');
+    if (img) img.alt = nome;
+  };
+
+  /** Logo do node Configuração; cai para TEXTOS.logo. Some se a URL quebrar. */
+  const definirLogo = (url) => {
+    const img = document.querySelector('[data-logo]');
+    if (!img) return;
+    url = url || TEXTOS.logo || '';
+    if (!url) return;
+    img.onerror = () => img.setAttribute('hidden', '');
+    img.onload = () => img.removeAttribute('hidden');
+    img.src = url;
+  };
+  definirMarca(cfg.EMPRESA);
+  definirLogo('');
+
+  // ------------------------------------------------------------------ NPS
+  const zonaDe = (n) => (n <= FAIXAS.critico_ate ? 'critico' : n <= FAIXAS.neutro_ate ? 'neutro' : 'bom');
+
+  let nota = null;
+  const escala = $('#escala');
+  const botoes = [];
+
+  for (let n = 0; n <= 10; n++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = n;
+    b.dataset.nota = n;
+    b.dataset.zona = zonaDe(n);
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', 'false');
+    b.setAttribute('aria-label', TEXTOS.notaAriaLabelPrefixo + n);
+    b.tabIndex = n === 0 ? 0 : -1;
+    b.addEventListener('click', () => escolher(n));
+    escala.appendChild(b);
+    botoes.push(b);
+  }
+
+  // Navegação por teclado dentro do radiogroup (padrão WAI-ARIA)
+  escala.addEventListener('keydown', (ev) => {
+    const atual = nota === null ? 0 : nota;
+    let alvo = null;
+    if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') alvo = Math.min(10, atual + 1);
+    if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') alvo = Math.max(0, atual - 1);
+    if (ev.key === 'Home') alvo = 0;
+    if (ev.key === 'End') alvo = 10;
+    if (alvo === null) return;
+    ev.preventDefault();
+    escolher(alvo);
+    botoes[alvo].focus();
+  });
+
+  function escolher(n) {
+    nota = n;
+    botoes.forEach((b, i) => {
+      b.setAttribute('aria-checked', String(i === n));
+      b.tabIndex = i === n ? 0 : -1;
+    });
+    const z = TEXTOS.zonas[zonaDe(n)];
+    const r = $('#reacao');
+    r.dataset.zona = zonaDe(n);
+    r.classList.add('ativa');
+    $('#reacao-titulo').textContent = z.titulo;
+    $('#reacao-texto').textContent = z.texto;
+    $('#observacoes').placeholder = z.placeholder;
+    $('#ajuda-obs').textContent = z.obrigaTexto ? TEXTOS.obsAjudaObrigatoria : TEXTOS.obsAjudaPadrao;
+    esconderErro('nota');
+  }
+
+  // ------------------------------------------------------- validação leve
+  const mostrarErro = (campo, elemento) => {
+    $(`#erro-${campo}`).classList.add('ativa');
+    if (elemento) elemento.setAttribute('aria-invalid', 'true');
+  };
+  const esconderErro = (campo, elemento) => {
+    $(`#erro-${campo}`).classList.remove('ativa');
+    if (elemento) elemento.removeAttribute('aria-invalid');
+  };
+
+  const obs = $('#observacoes');
+  obs.addEventListener('input', () => {
+    const n = obs.value.length;
+    const c = $('#contador');
+    c.textContent = `${n} / 1000`;
+    c.classList.toggle('limite', n > 940);
+    if (n > 0) esconderErro('obs', obs);
+  });
+
+  const tel = $('#telefone');
+  tel.addEventListener('input', () => {
+    // máscara progressiva: (11) 90000-0000
+    const d = tel.value.replace(/\D/g, '').slice(0, 11);
+    tel.value = d.length <= 2 ? d
+      : d.length <= 6 ? `(${d.slice(0, 2)}) ${d.slice(2)}`
+      : d.length <= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+      : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    esconderErro('tel', tel);
+  });
+
+  // ------------------------------------------------------------- carregar
+  /**
+   * Caminho normal: o n8n já injetou os dados no HTML — nada é buscado.
+   * Caminho de desenvolvimento: o placeholder continua lá (a página foi aberta
+   * fora do n8n), então buscamos via HTTP para conseguir testar o layout.
+   */
+  function dadosInjetados() {
+    const bruto = (document.getElementById('dados-venda')?.textContent || '').trim();
+    if (!bruto || bruto.startsWith('__DADOS')) return null;
+    try { return JSON.parse(bruto); } catch { return null; }
+  }
+
+  async function carregar() {
+    if (!token) return mostrar('tela-invalido');
+    try {
+      let dados = dadosInjetados();
+      if (!dados) {
+        const url = `${cfg.BASE_DEV}${cfg.ROTA_DADOS_DEV}?t=${encodeURIComponent(token)}`;
+        const resp = await fetch(url, { headers: { Accept: 'application/json' } });
+        dados = await resp.json().catch(() => ({}));
+        if (!resp.ok) return mostrar('tela-invalido');
+      }
+
+      definirMarca(dados.empresa);
+      definirLogo(dados.logo);
+      if (!dados.ok) return mostrar('tela-invalido');
+      if (dados.ja_respondeu) {
+        $('[data-quando]').textContent = formatarData(dados.respondido_em);
+        return mostrar('tela-repetido');
+      }
+
+      const nome = dados.nome || dados.primeiro_nome || '';
+      $('[data-saudacao]').textContent = dados.primeiro_nome
+        ? `${TEXTOS.saudacaoComNomePrefixo}${dados.primeiro_nome}` : TEXTOS.saudacaoPadrao;
+      $('[data-cliente]').textContent = nome || TEXTOS.clientePadrao;
+      document.querySelectorAll('[data-produto]').forEach((e) => (e.textContent = dados.produto || TEXTOS.produtoPadrao));
+      $('[data-hoje]').textContent = new Date().toLocaleDateString('pt-BR',
+        { day: '2-digit', month: 'short', year: 'numeric' });
+      if (dados.telefone) { tel.value = dados.telefone; tel.dispatchEvent(new Event('input')); }
+      mostrar('tela-formulario');
+    } catch (e) {
+      mostrar('tela-invalido');
+    }
+  }
+
+  const formatarData = (iso) => {
+    if (!iso) return TEXTOS.dataDesconhecida;
+    const d = new Date(iso);
+    return isNaN(d) ? TEXTOS.dataDesconhecida
+      : d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  // --------------------------------------------------------------- enviar
+  $('#formulario').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const botao = $('#enviar');
+    $('#falha-envio').innerHTML = '';
+
+    if (nota === null) {
+      mostrarErro('nota');
+      botoes[0].focus();
+      return;
+    }
+    if (TEXTOS.zonas[zonaDe(nota)].obrigaTexto && obs.value.trim().length < 5) {
+      mostrarErro('obs', obs);
+      obs.focus();
+      return;
+    }
+    const digitos = tel.value.replace(/\D/g, '');
+    if (digitos.length > 0 && digitos.length < 10) {
+      mostrarErro('tel', tel);
+      tel.focus();
+      return;
+    }
+
+    botao.disabled = true;
+    botao.innerHTML = `<span class="girando" aria-hidden="true"></span>${TEXTOS.botaoEnviando}`;
+
+    try {
+      // Mesma origem quando o n8n serve a página; absoluto no modo dev.
+      const base = dadosInjetados() ? cfg.N8N_BASE : cfg.BASE_DEV;
+      const resp = await fetch(`${base}${cfg.ROTA_ENVIO}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          t: token,
+          nota,
+          observacoes: obs.value.trim(),
+          telefone: tel.value.trim(),
+          empresa_site: $('[name=empresa_site]').value,   // honeypot
+          enviado_em: new Date().toISOString(),
+        }),
+      });
+      const dados = await resp.json().catch(() => ({}));
+      if (!resp.ok || !dados.ok) throw new Error(dados.erro || 'falha');
+
+      const z = TEXTOS.zonas[zonaDe(nota)];
+      $('#sucesso-titulo').textContent = z.sucessoTitulo;
+      $('#sucesso-texto').textContent = z.sucessoTexto;
+      mostrar('tela-sucesso');
+    } catch (e) {
+      botao.disabled = false;
+      botao.textContent = TEXTOS.botaoTentarDeNovo;
+      $('#falha-envio').innerHTML =
+        '<div class="alerta" role="alert">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.8" stroke-linecap="round" style="flex:none;margin-top:2px">' +
+        '<path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>' +
+        `<span><b>${TEXTOS.falhaEnvioTitulo}</b> ${TEXTOS.falhaEnvioTexto}</span></div>`;
+    }
+  });
+
+  carregar();
+
+  // Rede de segurança: nunca deixar o cliente preso no esqueleto.
+  setTimeout(() => {
+    if (document.getElementById('tela-carregando').classList.contains('ativa')) {
+      mostrar('tela-invalido');
+    }
+  }, 5000);
+})();
+</script>
+</body>
+</html>

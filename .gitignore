@@ -1,0 +1,19 @@
+# Nunca versione credenciais
+*.json.key
+service-account*.json
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Saídas locais
+/tmp/
+*.log
+
+# Editor / SO
+.DS_Store
+.idea/
+.vscode/

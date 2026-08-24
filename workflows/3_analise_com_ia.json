@@ -1,0 +1,690 @@
+{
+  "id": "3analisecomia.js",
+  "name": "3 · Análise dos comentários com IA",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "5d28615c-5443-54cc-a215-742d1db7521f",
+      "name": "Toda Segunda 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7edbe29e-512b-5443-9fc3-0d18d223884d",
+      "name": "Executar Manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b448301f-b0c8-57a8-aa7e-b14dea925946",
+              "name": "PLANILHA_ID",
+              "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+              "type": "string"
+            },
+            {
+              "id": "58db2711-6d2a-5bc0-a230-19ebd8c4f3cc",
+              "name": "EMPRESA",
+              "value": "Loja Exemplo",
+              "type": "string"
+            },
+            {
+              "id": "c30d2e55-a8ab-5807-8f3b-3d4aa4825c36",
+              "name": "MODELO_GEMINI",
+              "value": "gemini-3.6-flash",
+              "type": "string"
+            },
+            {
+              "id": "e22e89a1-067b-593a-a194-67278778e125",
+              "name": "REMETENTE",
+              "value": "voce@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "81eee839-875e-5bc0-8792-8326f8b7367e",
+              "name": "DESTINATARIO_RELATORIO",
+              "value": "voce@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "1131aa5f-5a16-528d-a289-27f66f112c4b",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -160,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "respostas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "03dc8a31-5699-5f7c-a9c1-090642c0714c",
+      "name": "Ler Respostas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        60,
+        40
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Configuração').first().json;\nconst LIMITE_LOTE = 60;\n\nconst todas = $input.all().map((i) => i.json).filter((r) => r && r.id_resposta);\nconst novas = todas.filter((r) => !String(r.analisado_em || '').trim());\n\nif (novas.length === 0) return [];\n\nconst lote = novas.slice(0, LIMITE_LOTE);\nconst comComentario = lote.filter((r) => String(r.observacoes || '').trim().length >= 3);\n\nconst notas = lote.map((r) => Number(r.nota)).filter((n) => Number.isFinite(n));\nconst promotores = notas.filter((n) => n >= 9).length;\nconst detratores = notas.filter((n) => n <= 6).length;\nconst neutros = notas.length - promotores - detratores;\nconst nps = notas.length ? Math.round(((promotores - detratores) / notas.length) * 100) : 0;\nconst media = notas.length ? +(notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(2) : 0;\n\nconst datas = lote.map((r) => r.respondido_em).filter(Boolean).sort();\n\nconst comentarios = comComentario.map((r) =>\n  `[${r.id_resposta}] nota ${r.nota} · ${r.produto}: ${String(r.observacoes).replace(/\\s+/g, ' ').trim()}`\n).join('\\n');\n\nconst instrucao = [\n  'Você analisa comentários de clientes de uma loja brasileira.',\n  'Responda em português do Brasil, com objetividade e sem elogiar a empresa.',\n  '',\n  'Para o conjunto de comentários abaixo:',\n  '1. Escreva um resumo de 3 a 5 frases sobre o que os clientes estão dizendo.',\n  '2. Liste os temas recorrentes, do mais citado ao menos citado (no máximo 6).',\n  '   Um tema é um assunto concreto (ex.: \"prazo de entrega\", \"qualidade do som\"),',\n  '   nunca algo genérico como \"experiência\" ou \"produto\".',\n  '3. Sugira de 2 a 4 ações práticas, cada uma ligada a um tema.',\n  '4. Classifique CADA comentário em positivo, neutro ou negativo, e associe',\n  '   até 2 temas da sua própria lista. Use o id entre colchetes.',\n  '',\n  'Se um comentário for vago demais para classificar, use \"neutro\" e tema \"sem detalhe\".',\n  '',\n  `Comentários (${comComentario.length}):`,\n  comentarios || '(nenhum comentário em texto neste lote)',\n].join('\\n');\n\nconst corpo_gemini = {\n  contents: [{ role: 'user', parts: [{ text: instrucao }] }],\n  generationConfig: {\n    temperature: 0.2,\n    responseMimeType: 'application/json',\n    responseSchema: {\n      type: 'object',\n      properties: {\n        resumo: { type: 'string' },\n        temas: {\n          type: 'array',\n          items: {\n            type: 'object',\n            properties: {\n              tema: { type: 'string' },\n              mencoes: { type: 'integer' },\n              tom: { type: 'string', enum: ['positivo', 'negativo', 'misto'] },\n            },\n            required: ['tema', 'mencoes', 'tom'],\n          },\n        },\n        acoes: { type: 'array', items: { type: 'string' } },\n        classificacoes: {\n          type: 'array',\n          items: {\n            type: 'object',\n            properties: {\n              id_resposta: { type: 'string' },\n              sentimento: { type: 'string', enum: ['positivo', 'neutro', 'negativo'] },\n              temas: { type: 'string' },\n            },\n            required: ['id_resposta', 'sentimento', 'temas'],\n          },\n        },\n      },\n      required: ['resumo', 'temas', 'acoes', 'classificacoes'],\n    },\n  },\n};\n\nreturn [{\n  json: {\n    modelo: String(cfg.MODELO_GEMINI || 'gemini-3.6-flash').trim(),\n    corpo_gemini,\n    metricas: {\n      respostas: lote.length, com_comentario: comComentario.length,\n      nps, nota_media: media, promotores, neutros, detratores,\n      periodo_de: (datas[0] || '').slice(0, 10),\n      periodo_ate: (datas[datas.length - 1] || '').slice(0, 10),\n    },\n    lote: lote.map((r) => ({ id_resposta: r.id_resposta, nota: r.nota, produto: r.produto,\n                             observacoes: r.observacoes, id_venda: r.id_venda,\n                             respondido_em: r.respondido_em, nome: r.nome, email: r.email,\n                             telefone: r.telefone, classificacao_nps: r.classificacao_nps })),\n  },\n}];"
+      },
+      "id": "74c27dae-7322-5758-9113-829492958817",
+      "name": "Montar Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $json.modelo }}:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.corpo_gemini) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "5f7a8cae-d05f-52ce-9630-349eb350ea1b",
+      "name": "Gemini · Analisar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        40
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('Montar Prompt').first().json;\nconst m = base.metricas;\n\nlet ia = { resumo: '', temas: [], acoes: [], classificacoes: [] };\nlet falhaIA = '';\ntry {\n  const r = $json || {};\n\n  const apiErro = r.error || r.body?.error;\n  if (apiErro) {\n    throw new Error(`API do Gemini recusou: ${apiErro.status || apiErro.code || ''} ${apiErro.message || ''}`.trim());\n  }\n  if (typeof r.message === 'string' && !r.candidates) {\n    throw new Error(`chamada falhou: ${r.message}`);\n  }\n\n  const cand = r.candidates?.[0];\n  if (!cand) {\n    const bloqueio = r.promptFeedback?.blockReason;\n    if (bloqueio) throw new Error(`prompt bloqueado pelo filtro (${bloqueio})`);\n    throw new Error(`resposta sem candidatos — recebido: ${JSON.stringify(r).slice(0, 300)}`);\n  }\n\n  const texto = cand.content?.parts?.[0]?.text;\n  if (!texto) {\n    const motivo = cand.finishReason || 'desconhecido';\n    throw new Error(`resposta vazia (finishReason: ${motivo})`);\n  }\n\n  const limpo = texto.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  ia = { ...ia, ...JSON.parse(limpo) };\n} catch (e) {\n  falhaIA = String(e.message || e);\n}\n\nconst porId = new Map((ia.classificacoes || []).map((c) => [String(c.id_resposta).trim(), c]));\nconst conta = { positivo: 0, neutro: 0, negativo: 0 };\nconst agora = new Date().toISOString();\n\nconst respostas = base.lote.map((r) => {\n  const c = porId.get(r.id_resposta);\n  const sentimento = c?.sentimento || (falhaIA ? '' : 'neutro');\n  if (sentimento && conta[sentimento] !== undefined) conta[sentimento] += 1;\n  return {\n    id_resposta: r.id_resposta, id_venda: r.id_venda, respondido_em: r.respondido_em,\n    nome: r.nome, email: r.email, telefone: r.telefone, produto: r.produto,\n    nota: r.nota, classificacao_nps: r.classificacao_nps, observacoes: r.observacoes,\n    sentimento, temas: c?.temas || '', analisado_em: agora,\n  };\n});\n\nconst analise = {\n  gerado_em: agora,\n  periodo_de: m.periodo_de, periodo_ate: m.periodo_ate,\n  respostas: m.respostas, nps: m.nps, nota_media: m.nota_media,\n  promotores: m.promotores, neutros: m.neutros, detratores: m.detratores,\n  sentimento_positivo: conta.positivo, sentimento_neutro: conta.neutro,\n  sentimento_negativo: conta.negativo,\n  temas_principais: (ia.temas || []).map((t) => `${t.tema} (${t.mencoes}, ${t.tom})`).join(' · '),\n  resumo: falhaIA ? `[análise de IA indisponível: ${falhaIA}]` : ia.resumo,\n  acoes_sugeridas: (ia.acoes || []).join(' · '),\n};\n\nreturn [{ json: { analise, respostas, metricas: m, ia, falha_ia: falhaIA } }];"
+      },
+      "id": "9d991626-7eda-5ac3-b24e-6256a9e13936",
+      "name": "Consolidar Análise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Consolidar Análise').first().json.respostas.map((json) => ({ json }));"
+      },
+      "id": "1e344d65-9829-513f-8346-6f2b32cd52d3",
+      "name": "Uma Linha por Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "respostas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id_resposta"
+          ],
+          "schema": [
+            {
+              "id": "id_resposta",
+              "displayName": "id_resposta",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_venda",
+              "displayName": "id_venda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respondido_em",
+              "displayName": "respondido_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "produto",
+              "displayName": "produto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nota",
+              "displayName": "nota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "classificacao_nps",
+              "displayName": "classificacao_nps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "observacoes",
+              "displayName": "observacoes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento",
+              "displayName": "sentimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temas",
+              "displayName": "temas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "analisado_em",
+              "displayName": "analisado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "644258d0-ec16-55f8-82e9-e4c7772ff6e9",
+      "name": "Atualizar Respostas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1160,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $('Consolidar Análise').first().json.analise }];"
+      },
+      "id": "173e5044-4258-5f1a-9ede-30018a34013f",
+      "name": "Preparar Linha da Análise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "analise",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "gerado_em",
+              "displayName": "gerado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "periodo_de",
+              "displayName": "periodo_de",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "periodo_ate",
+              "displayName": "periodo_ate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respostas",
+              "displayName": "respostas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nps",
+              "displayName": "nps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nota_media",
+              "displayName": "nota_media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "promotores",
+              "displayName": "promotores",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "neutros",
+              "displayName": "neutros",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detratores",
+              "displayName": "detratores",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento_positivo",
+              "displayName": "sentimento_positivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento_neutro",
+              "displayName": "sentimento_neutro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento_negativo",
+              "displayName": "sentimento_negativo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temas_principais",
+              "displayName": "temas_principais",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumo",
+              "displayName": "resumo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "acoes_sugeridas",
+              "displayName": "acoes_sugeridas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "47bbf5d6-6939-5d3f-899a-366f423d7fca",
+      "name": "Gravar Análise",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1160,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Consolidar Análise').first().json;\nconst a = c.analise;\nconst cfg = $('Configuração').first().json;\n\nconst VERDE  = '#3A4B41';\nconst PAPEL  = '#E6CFA7';\nconst TINTA  = '#3A4B41';\nconst FRACO  = '#6b7a70';\nconst LINHA  = '#b9a884';\n\nconst LOGO = '';\n\nconst TITULO   = 'O Relatório';\nconst CHAMADA  = 'Como os clientes avaliaram';\nconst SELO     = 'Resumo da semana';\n\nconst cor = a.nps >= 50 ? '#2c5c3a' : a.nps >= 0 ? '#8a5d00' : '#8c2f22';\nconst rotulo = a.nps >= 50 ? 'ótimo' : a.nps >= 0 ? 'razoável' : 'crítico';\n\nconst cabecalhoLogo = LOGO\n  ? `<img src=\"${LOGO}\" alt=\"${cfg.EMPRESA}\" height=\"40\"\n         style=\"display:block;margin:0 0 8px auto;height:40px;width:auto;border:0\">`\n  : '';\n\nconst numero = (rot, val, apoio, corVal) => `\n  <td width=\"33.33%\" valign=\"top\" style=\"padding-right:14px\">\n    <div style=\"font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${FRACO}\">${rot}</div>\n    <div style=\"font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.1;\n                margin-top:6px;color:${corVal || TINTA}\">${val}</div>\n    <div style=\"font-size:10px;letter-spacing:1.5px;text-transform:uppercase;\n                color:${FRACO};margin-top:4px\">${apoio}</div>\n  </td>`;\n\nconst bloco = (titulo, conteudo) => `\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:30px\">\n    <tr><td style=\"height:1px;background:${LINHA};font-size:0;line-height:0\">&nbsp;</td></tr>\n    <tr><td style=\"padding-top:18px\">\n      <div style=\"font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;\n                  color:${TINTA};margin-bottom:12px\">${titulo}</div>\n      ${conteudo}\n    </td></tr>\n  </table>`;\n\nconst tema = (t) => `<li style=\"margin-bottom:9px;color:${FRACO}\">\n  <strong style=\"color:${TINTA};font-weight:700\">${t.tema}</strong> — ${t.mencoes} menção(ões), tom ${t.tom}</li>`;\nconst acao = (x) => `<li style=\"margin-bottom:9px;color:${FRACO}\">${x}</li>`;\nconst lista = (itens, vazio) =>\n  `<ul style=\"margin:0;padding-left:18px;font-size:14.5px;line-height:1.6\">${itens || `<li style=\"color:${FRACO}\">${vazio}</li>`}</ul>`;\n\nconst html = `<!doctype html>\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>\n<body style=\"margin:0;padding:40px 16px;background:${VERDE};\n  font-family:Helvetica,Arial,sans-serif;color:${TINTA}\">\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">\n  NPS ${a.nps} · ${a.respostas} respostas · nota média ${a.nota_media}</div>\n\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td align=\"center\">\n\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n         style=\"max-width:620px;background:${PAPEL}\">\n    <tr><td style=\"padding:44px 44px 40px\">\n\n      <!-- cabeçalho -->\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n        <td valign=\"bottom\" style=\"font-family:Georgia,'Times New Roman',serif;font-style:italic;\n                   font-size:38px;line-height:1;color:${VERDE}\">${TITULO}</td>\n        <td valign=\"bottom\" align=\"right\" style=\"font-size:11px;line-height:1.9;\n                   letter-spacing:2px;text-transform:uppercase;color:${TINTA}\">\n          ${cabecalhoLogo}<strong style=\"font-weight:700\">${cfg.EMPRESA}</strong><br>\n          <span style=\"color:${FRACO}\">${SELO}</span>\n        </td>\n      </tr></table>\n\n      <!-- ficha do período -->\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n             style=\"margin-top:32px;font-size:11px;letter-spacing:2px;text-transform:uppercase\"><tr>\n        <td width=\"50%\" valign=\"top\">\n          <span style=\"color:${FRACO}\">Período</span><br>\n          <strong style=\"font-weight:700;letter-spacing:1.5px\">${a.periodo_de} a ${a.periodo_ate}</strong>\n        </td>\n        <td width=\"50%\" valign=\"top\" align=\"right\">\n          <span style=\"color:${FRACO}\">Respostas</span><br>\n          <strong style=\"font-weight:700;letter-spacing:1.5px\">${a.respostas} analisadas</strong>\n        </td>\n      </tr></table>\n\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:26px\">\n        <tr><td style=\"height:2px;background:${VERDE};font-size:0;line-height:0\">&nbsp;</td></tr>\n      </table>\n\n      <h1 style=\"margin:26px 0 24px;font-size:21px;line-height:1.3;font-weight:700;color:${TINTA}\">\n        ${CHAMADA}</h1>\n\n      <!-- os três números -->\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n        ${numero('NPS', a.nps, rotulo, cor)}\n        ${numero('Nota média', a.nota_media, 'de 0 a 10')}\n        ${numero('Detratores', a.detratores, `de ${a.respostas}`)}\n      </tr></table>\n\n      ${bloco('O que os clientes estão dizendo',\n        `<p style=\"margin:0;font-size:14.5px;line-height:1.65;color:${FRACO}\">${a.resumo}</p>`)}\n      ${bloco('Temas mais citados', lista((c.ia.temas || []).map(tema).join(''), 'Sem comentários em texto neste período.'))}\n      ${bloco('Ações sugeridas', lista((c.ia.acoes || []).map(acao).join(''), 'Nada a sugerir neste período.'))}\n\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:30px\">\n        <tr><td style=\"height:1px;background:${LINHA};font-size:0;line-height:0\">&nbsp;</td></tr>\n      </table>\n      <p style=\"margin:16px 0 0;font-size:11px;line-height:1.8;letter-spacing:1px;\n                text-transform:uppercase;color:${FRACO}\">\n        Sentimento: ${a.sentimento_positivo} positivos ·\n        ${a.sentimento_neutro} neutros · ${a.sentimento_negativo} negativos</p>\n\n    </td></tr>\n  </table>\n\n  <p style=\"margin:18px 0 0;max-width:620px;font-size:11px;line-height:1.7;letter-spacing:1px;\n            text-transform:uppercase;color:#9aa79d\">\n    Gerado automaticamente pelo n8n a partir da planilha de respostas.</p>\n\n</td></tr></table>\n</body></html>`;\n\nreturn [{\n  json: {\n    assunto: `NPS ${a.nps} · ${a.respostas} respostas · ${cfg.EMPRESA}`,\n    corpo_html: html,\n    corpo_texto: `NPS ${a.nps} | nota média ${a.nota_media} | ${a.respostas} respostas\\n\\n${a.resumo}\\n\\nTemas: ${a.temas_principais}\\n\\nAções: ${a.acoes_sugeridas}`,\n  },\n}];"
+      },
+      "id": "4412a041-48d1-522a-bb99-d7d6599ab39e",
+      "name": "Montar Relatório",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuração').first().json.REMETENTE }}",
+        "toEmail": "={{ $('Configuração').first().json.DESTINATARIO_RELATORIO }}",
+        "subject": "={{ $json.assunto }}",
+        "emailFormat": "both",
+        "text": "={{ $json.corpo_texto }}",
+        "html": "={{ $json.corpo_html }}",
+        "options": {}
+      },
+      "id": "7112f18d-6761-51ec-b958-0cc3035619bf",
+      "name": "Enviar Relatório",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        160
+      ]
+    }
+  ],
+  "connections": {
+    "Toda Segunda 09:00": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Ler Respostas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler Respostas": {
+      "main": [
+        [
+          {
+            "node": "Montar Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Prompt": {
+      "main": [
+        [
+          {
+            "node": "Gemini · Analisar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini · Analisar": {
+      "main": [
+        [
+          {
+            "node": "Consolidar Análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidar Análise": {
+      "main": [
+        [
+          {
+            "node": "Uma Linha por Resposta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar Linha da Análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uma Linha por Resposta": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Respostas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Linha da Análise": {
+      "main": [
+        [
+          {
+            "node": "Gravar Análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar Análise": {
+      "main": [
+        [
+          {
+            "node": "Montar Relatório",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Relatório": {
+      "main": [
+        [
+          {
+            "node": "Enviar Relatório",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 900
+  },
+  "pinData": {},
+  "tags": [],
+  "versionId": "54b4525f-1487-5306-99ad-8bc498b17d61",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

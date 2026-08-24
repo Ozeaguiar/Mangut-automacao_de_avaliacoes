@@ -1,0 +1,431 @@
+{
+  "id": "1conviteporemail",
+  "name": "1 · Convite de avaliação por e-mail",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "98601f9a-e57e-53bf-89be-7cee38403717",
+      "name": "A Cada 15 Minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -360,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7edbe29e-512b-5443-9fc3-0d18d223884d",
+      "name": "Executar Manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b448301f-b0c8-57a8-aa7e-b14dea925946",
+              "name": "PLANILHA_ID",
+              "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+              "type": "string"
+            },
+            {
+              "id": "d80bd992-9245-5268-882f-7c7e3750802d",
+              "name": "URL_FORMULARIO",
+              "value": "http://localhost:5678/webhook/feedback",
+              "type": "string"
+            },
+            {
+              "id": "58db2711-6d2a-5bc0-a230-19ebd8c4f3cc",
+              "name": "EMPRESA",
+              "value": "Loja Exemplo",
+              "type": "string"
+            },
+            {
+              "id": "e22e89a1-067b-593a-a194-67278778e125",
+              "name": "REMETENTE",
+              "value": "voce@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "1131aa5f-5a16-528d-a289-27f66f112c4b",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -140,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "vendas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "c350d560-3cb0-53dd-b0b6-8ace673f11f1",
+      "name": "Ler Vendas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        80,
+        40
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const HORAS_ESPERA = 24;\n\nconst cfg = $('Configuração').first().json;\nconst agora = new Date();\n\nfunction paraData(valor) {\n  if (!valor) return null;\n  const s = String(valor).trim();\n  const br = s.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})(?:[ ,]+(\\d{2}):(\\d{2}))?/);\n  if (br) return new Date(Date.UTC(+br[3], +br[2] - 1, +br[1], +(br[4] || 0), +(br[5] || 0)));\n  const d = new Date(s);\n  return isNaN(d) ? null : d;\n}\n\nfunction novoToken() {\n  const abc = 'abcdefghijkmnpqrstuvwxyz23456789';\n  let t = '';\n  for (let i = 0; i < 24; i++) t += abc[Math.floor(Math.random() * abc.length)];\n  return t;\n}\n\nconst pendentes = $input.all()\n  .map((i) => i.json)\n  .filter((l) => l && String(l.id_venda || '').trim())\n  .filter((l) => !String(l.convite_enviado_em || '').trim())\n  .filter((l) => /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(String(l.email || '').trim()))\n  .filter((l) => {\n    const compra = paraData(l.data_compra);\n    if (!compra) return true;\n    return (agora - compra) / 36e5 >= HORAS_ESPERA;\n  });\n\nif (pendentes.length === 0) return [];\n\nreturn pendentes.map((l) => {\n  const token = novoToken();\n  const base = String(cfg.URL_FORMULARIO || '').replace(/\\/+$/, '');\n  return {\n    json: {\n      ...l,\n      token,\n      link: `${base}?t=${token}`,\n      primeiro_nome: String(l.nome || '').trim().split(/\\s+/)[0] || 'tudo bem',\n      empresa: cfg.EMPRESA,\n    },\n  };\n});"
+      },
+      "id": "533d71dd-31c3-54d0-9f74-5324959ba809",
+      "name": "Selecionar Pendentes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "d09a4706-a1bf-53bf-ba97-dd25715d54ef",
+      "name": "Loop Vendas",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        520,
+        40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c6c02dbc-e1da-5b94-a1d8-0130301d7fba",
+      "name": "Fim",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        760,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const v = $json;\n\nconst VERDE  = '#3A4B41';\nconst PAPEL  = '#E6CFA7';\nconst TINTA  = '#3A4B41';\nconst FRACO  = '#6b7a70';\nconst LINHA  = '#b9a884';\n\nconst LOGO = '';\n\nconst TITULO   = 'Sua Experiência';\nconst CHAMADA  = `Oi, ${v.primeiro_nome}! Que tal o sorvete?`;\nconst LINHA_1  = `Você levou <strong style=\"color:${TINTA};font-weight:600\">${v.produto}</strong> e a gente queria muito saber o que achou. São <strong style=\"color:${TINTA};font-weight:600\">30 segundos</strong>: uma nota e, se quiser, um comentário.`;\nconst LINHA_2  = 'A gente lê tudo. É assim que a próxima fornada fica melhor que essa.';\nconst BOTAO    = 'Avaliar minha experiência';\nconst RODAPE   = `Você recebeu este e-mail porque comprou na ${v.empresa}.`;\n\nconst assunto = `${v.primeiro_nome}, que tal o ${v.produto}?`;\n\nconst cabecalhoLogo = LOGO\n  ? `<img src=\"${LOGO}\" alt=\"${v.empresa}\" height=\"40\"\n         style=\"display:block;margin:0 0 8px auto;height:40px;width:auto;border:0\">`\n  : '';\n\nconst html = `<!doctype html>\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>\n<body style=\"margin:0;padding:40px 16px;background:${VERDE};\n  font-family:Helvetica,Arial,sans-serif;color:${TINTA}\">\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">\n  São 30 segundos: uma nota e, se quiser, um comentário.</div>\n\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td align=\"center\">\n\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n         style=\"max-width:600px;background:${PAPEL}\">\n    <tr><td style=\"padding:44px 44px 38px\">\n\n      <!-- cabeçalho: título à esquerda, marca à direita -->\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n        <td valign=\"bottom\" style=\"font-family:Georgia,'Times New Roman',serif;font-style:italic;\n                   font-size:38px;line-height:1;color:${VERDE}\">${TITULO}</td>\n        <td valign=\"bottom\" align=\"right\" style=\"font-size:11px;line-height:1.9;\n                   letter-spacing:2px;text-transform:uppercase;color:${TINTA}\">\n          ${cabecalhoLogo}<strong style=\"font-weight:700\">${v.empresa}</strong><br>\n          <span style=\"color:${FRACO}\">Avaliação da visita</span>\n        </td>\n      </tr></table>\n\n      <!-- ficha -->\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n             style=\"margin-top:32px;font-size:11px;letter-spacing:2px;text-transform:uppercase\"><tr>\n        <td width=\"50%\" valign=\"top\">\n          <span style=\"color:${FRACO}\">Cliente</span><br>\n          <strong style=\"font-weight:700;letter-spacing:1.5px\">${v.nome}</strong>\n        </td>\n        <td width=\"50%\" valign=\"top\" align=\"right\">\n          <span style=\"color:${FRACO}\">Sabor</span><br>\n          <strong style=\"font-weight:700;letter-spacing:1.5px\">${v.produto}</strong>\n        </td>\n      </tr></table>\n\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:26px\">\n        <tr><td style=\"height:2px;background:${VERDE};font-size:0;line-height:0\">&nbsp;</td></tr>\n      </table>\n\n      <h1 style=\"margin:26px 0 10px;font-size:21px;line-height:1.3;font-weight:700;color:${TINTA}\">\n        ${CHAMADA}</h1>\n\n      <p style=\"margin:0 0 12px;font-size:15px;line-height:1.6;color:${FRACO}\">${LINHA_1}</p>\n      <p style=\"margin:0 0 30px;font-size:15px;line-height:1.6;color:${FRACO}\">${LINHA_2}</p>\n\n      <!-- botão -->\n      <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n        <td style=\"background:${VERDE}\">\n          <a href=\"${v.link}\" style=\"display:inline-block;padding:17px 38px;color:${PAPEL};\n             text-decoration:none;font-size:12px;font-weight:700;letter-spacing:3px;\n             text-transform:uppercase\">${BOTAO}</a>\n        </td>\n      </tr></table>\n\n      <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:34px\">\n        <tr><td style=\"height:1px;background:${LINHA};font-size:0;line-height:0\">&nbsp;</td></tr>\n      </table>\n      <p style=\"margin:16px 0 0;font-size:11px;line-height:1.7;letter-spacing:1px;\n                text-transform:uppercase;color:${FRACO}\">Se o botão não abrir, use este endereço:</p>\n      <p style=\"margin:4px 0 0;font-size:12px;line-height:1.6;word-break:break-all;color:${TINTA}\">\n        ${v.link}</p>\n\n    </td></tr>\n  </table>\n\n  <p style=\"margin:18px 0 0;max-width:600px;font-size:11px;line-height:1.7;letter-spacing:1px;\n            text-transform:uppercase;color:#9aa79d\">${RODAPE}</p>\n\n</td></tr></table>\n</body></html>`;\n\nconst texto = [\n  `Oi, ${v.primeiro_nome}!`, '',\n  `Você levou ${v.produto} e a gente queria saber o que achou. São 30 segundos:`,\n  v.link, '',\n  `— Equipe ${v.empresa}`,\n].join('\\n');\n\nreturn [{ json: { ...v, assunto, corpo_html: html, corpo_texto: texto } }];"
+      },
+      "id": "7d9634a8-c407-538c-8f33-d9c93741a853",
+      "name": "Montar E-mail",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuração').first().json.REMETENTE }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.assunto }}",
+        "emailFormat": "both",
+        "text": "={{ $json.corpo_texto }}",
+        "html": "={{ $json.corpo_html }}",
+        "options": {}
+      },
+      "id": "d4e06fbc-d0c8-58cd-b32f-406ed2efa991",
+      "name": "Enviar Convite",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        980,
+        180
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const v = $('Montar E-mail').first().json;\n\nreturn [{\n  json: {\n    id_venda: v.id_venda,\n    data_compra: v.data_compra ?? '',\n    nome: v.nome ?? '',\n    email: v.email ?? '',\n    telefone: v.telefone ?? '',\n    produto: v.produto ?? '',\n    token: v.token,\n    convite_enviado_em: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "2c0e8f13-b096-5802-8303-e1a2036099ae",
+      "name": "Preparar Registro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "vendas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id_venda"
+          ],
+          "schema": [
+            {
+              "id": "id_venda",
+              "displayName": "id_venda",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data_compra",
+              "displayName": "data_compra",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "produto",
+              "displayName": "produto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "token",
+              "displayName": "token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "convite_enviado_em",
+              "displayName": "convite_enviado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "3a328a73-78b0-5259-8848-dc0985faa178",
+      "name": "Registrar Envio",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1420,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "A Cada 15 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar Manualmente": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Ler Vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler Vendas": {
+      "main": [
+        [
+          {
+            "node": "Selecionar Pendentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Selecionar Pendentes": {
+      "main": [
+        [
+          {
+            "node": "Loop Vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Vendas": {
+      "main": [
+        [
+          {
+            "node": "Fim",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Montar E-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar E-mail": {
+      "main": [
+        [
+          {
+            "node": "Enviar Convite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Convite": {
+      "main": [
+        [
+          {
+            "node": "Preparar Registro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Registro": {
+      "main": [
+        [
+          {
+            "node": "Registrar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Envio": {
+      "main": [
+        [
+          {
+            "node": "Loop Vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 900
+  },
+  "pinData": {},
+  "tags": [],
+  "versionId": "791815c3-8833-5c9a-abdb-6dd20c7261fa",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

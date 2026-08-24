@@ -1,0 +1,702 @@
+{
+  "id": "2formularioeresp",
+  "name": "2 · Formulário e recebimento das respostas",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "feedback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c9700816-52d6-58e4-9b9b-3765cb840891",
+      "name": "Webhook · Página do Formulário",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -620,
+        -80
+      ],
+      "webhookId": "3bdc70e1-58e9-59ac-8a74-1c973cf28f68"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b448301f-b0c8-57a8-aa7e-b14dea925946",
+              "name": "PLANILHA_ID",
+              "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+              "type": "string"
+            },
+            {
+              "id": "58db2711-6d2a-5bc0-a230-19ebd8c4f3cc",
+              "name": "EMPRESA",
+              "value": "Loja Exemplo",
+              "type": "string"
+            },
+            {
+              "id": "5cc1d462-ce58-5ff0-b2da-71d46eeb6f8c",
+              "name": "LOGO",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "790aa31a-64ca-5442-992e-3283677e820b",
+              "name": "PAGINA_HTML",
+              "value": "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"robots\" content=\"noindex, nofollow\">\n\n<title data-txt=\"tituloAba\">Como foi sua experiência?</title>\n\n<script>\nwindow.CONFIG = {\n    N8N_BASE: '',\n    ROTA_ENVIO: '/webhook/feedback/enviar',\n\n    EMPRESA: '',\n\n    BASE_DEV: 'http://localhost:5678',\n    ROTA_DADOS_DEV: '/webhook/feedback/dados',\n  };\n</script>\n\n<script id=\"dados-venda\" type=\"application/json\">\n__DADOS_DA_VENDA__\n</script>\n\n<script>\nwindow.TEXTOS = {\n    tituloAba: 'Que tal o sorvete?',\n\n    logo: 'data:image/png;base64,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',\n\n    tituloScript: 'Sua Experiência',\n    seloSubtitulo: 'Avaliação da visita',\n\n    metaClienteRotulo: 'Cliente',\n    metaProdutoRotulo: 'Sabor',\n    metaDuracaoRotulo: 'Avaliação',\n    metaDuracaoValor: '30 segundos',\n    metaDataRotulo: 'Data',\n    clientePadrao: 'Cliente',\n\n    saudacaoPadrao: 'Olá',\n    saudacaoComNomePrefixo: 'Oi, ',\n    h1Sufixo: ', que tal o sorvete?',\n    subPrefixo: 'Você levou ',\n    subSufixo: '. São 30 segundos e ajudam a gente a acertar a próxima fornada.',\n    produtoPadrao: 'seu sorvete',\n\n    honeypotLabel: 'Não preencha este campo',\n\n    notaLegenda: 'Recomendação',\n    notaDica: 'Nota de 0 a 10',\n    notaPontaEsquerda: '0 · não indicaria',\n    notaPontaDireita: 'indicaria com certeza · 10',\n    notaAriaLabelPrefixo: 'Nota ',\n    notaErro: 'Escolha uma nota de 0 a 10 para continuar.',\n\n    obsLabel: 'Comentário',\n    obsAjudaPadrao: 'Opcional',\n    obsAjudaObrigatoria: 'Importante aqui',\n    obsPlaceholderPadrao: 'Sabor, textura, doçura, atendimento…',\n    obsErro: 'Conta rapidinho o que deu errado — é assim que a gente conserta.',\n\n    telLabel: 'Telefone',\n    telAjuda: 'Usamos só se você pedir retorno',\n    telPlaceholder: '(11) 90000-0000',\n    telErro: 'Telefone incompleto — use DDD + número, ou deixe em branco.',\n\n    botaoEnviar: 'Enviar avaliação',\n    botaoEnviando: 'Enviando…',\n    botaoTentarDeNovo: 'Tentar de novo',\n    rodapeLinha1: 'Suas respostas vão só',\n    rodapeLinha2: 'para o time da ',\n\n    carregandoOculto: 'Carregando seus dados…',\n\n    invalidoTitulo: 'Este link não é mais válido',\n    invalidoTexto: 'Ele pode ter expirado ou sido copiado pela metade. Abra o ' +\n      'link direto do e-mail que você recebeu — ou responda aquele e-mail que ' +\n      'a gente reenvia.',\n\n    repetidoTitulo: 'Você já respondeu — obrigado!',\n    repetidoPrefixo: 'Sua avaliação foi registrada em ',\n    repetidoSufixo: '. Se quiser complementar alguma coisa, é só responder o ' +\n      'e-mail que enviamos.',\n    dataDesconhecida: 'outro dia',\n\n    falhaEnvioTitulo: 'Não conseguimos enviar agora.',\n    falhaEnvioTexto: 'Confira a conexão e tente de novo — suas respostas ' +\n      'continuam preenchidas aqui.',\n\n    zonas: {\n      critico: {\n        titulo: 'Poxa, desculpa por isso.',\n        texto: 'Conta o que não agradou que a gente ajusta a receita.',\n        placeholder: 'O que não agradou? Pode ser direto.',\n        obrigaTexto: true,\n        sucessoTitulo: 'Recebemos — e vamos te procurar.',\n        sucessoTexto: 'Alguém do time vai entrar em contato para resolver ' +\n          'isso. Desculpa pelo transtorno.',\n      },\n      neutro: {\n        titulo: 'Valeu pela sinceridade.',\n        texto: 'O que faltaria para virar um 10?',\n        placeholder: 'O que faltaria para ser nota máxima?',\n        obrigaTexto: false,\n        sucessoTitulo: 'Obrigado pela avaliação!',\n        sucessoTexto: 'Sua observação vai direto para quem faz o sorvete. ' +\n          'Valeu pelo tempo!',\n      },\n      bom: {\n        titulo: 'Que ótimo saber disso!',\n        texto: 'Qual sabor te conquistou?',\n        placeholder: 'Qual sabor te conquistou?',\n        obrigaTexto: false,\n        sucessoTitulo: 'Obrigado pela avaliação!',\n        sucessoTexto: 'Ficamos felizes que você gostou. Comentários assim ' +\n          'ajudam outras pessoas a escolher o sabor.',\n      },\n    },\n  };\n\n  window.FAIXAS = { critico_ate: 6, neutro_ate: 8 };\n</script>\n\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kaushan+Script&display=swap\" rel=\"stylesheet\">\n\n<style>\n  \n  :root {\n    color-scheme: light;\n    \n    --verde:#3A4B41; --verde-escuro:#24302a; --papel:#E6CFA7;\n    --linha:rgba(58,75,65,.45); --linha-fraca:rgba(58,75,65,.25);\n    --ink:#3A4B41; --ink-2:rgba(58,75,65,.85); --ink-3:rgba(58,75,65,.65);\n    --critico:#8c2f22; --atencao:#8a5d00; --bom:#2c5c3a;\n    --sombra:0 34px 70px -24px rgba(0,0,0,.55), 0 2px 0 rgba(0,0,0,.12);\n\n    --logo-altura:52px;\n\n    \n    --titulo-tamanho:52px;\n    --titulo-tamanho-celular:40px;\n\n    --fonte:Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif;\n    --fonte-titulo:\"Kaushan Script\", cursive;\n  }\n  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none!important; transition:none!important } }\n\n  \n  * { box-sizing:border-box }\n  html, body { height:100% }\n  body {\n    margin:0; padding:64px 24px 72px; background:var(--verde); color:var(--ink);\n    font:16px/1.55 var(--fonte);\n    -webkit-font-smoothing:antialiased;\n  }\n  .folha {\n    max-width:660px; margin:0 auto; background:var(--papel);\n    box-shadow:var(--sombra); padding:56px 56px 48px;\n  }\n  @media (max-width:600px) {\n    body { padding:0 }\n    .folha { min-height:100vh; padding:36px 22px 34px; box-shadow:none }\n  }\n\n  \n  .topo { display:flex; align-items:baseline; justify-content:space-between; gap:24px; flex-wrap:wrap }\n  .titulo-script {\n    font-family:var(--fonte-titulo); font-size:var(--titulo-tamanho);\n    line-height:.95; color:var(--verde); min-width:0;\n  }\n  @media (max-width:600px) { .titulo-script { font-size:var(--titulo-tamanho-celular) } }\n  .selo-marca { text-align:right; font-size:11px; letter-spacing:.14em; text-transform:uppercase; line-height:1.9 }\n  .selo-marca .fraco { color:var(--ink-3) }\n  .selo-marca .logo {\n    display:block; margin:0 0 10px auto; max-height:var(--logo-altura);\n    max-width:190px; width:auto; height:auto;\n  }\n  .selo-marca .logo:not([src]), .selo-marca .logo[src=\"\"] { display:none }\n  @media (max-width:600px) { .selo-marca .logo { margin-left:0 } }\n\n  .meta { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px;\n          font-size:12px; letter-spacing:.1em; text-transform:uppercase; line-height:2 }\n  .meta .dir { text-align:right }\n  .meta dt { color:var(--ink-3) }\n  .meta dd { margin:0; font-weight:600 }\n  .meta dt + dd { margin-bottom:12px }\n  @media (max-width:600px) { .meta { grid-template-columns:1fr } .meta .dir { text-align:left } }\n\n  .regua { height:2px; background:var(--verde); border:0; margin:28px 0 0 }\n  .regua.fim { margin:40px 0 26px }\n\n  h1 { margin:0; font-size:22px; line-height:1.3; letter-spacing:-.01em; font-weight:600 }\n  .sub { margin:8px 0 0; color:var(--ink-2); font-size:15px; text-wrap:pretty }\n  .produto { font-weight:600; color:var(--ink) }\n\n  fieldset { border:0; margin:0; padding:0 }\n  .rot-linha { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:22px 0 14px }\n  legend, .rotulo { padding:0; font-size:13px; font-weight:700; letter-spacing:.12em;\n                    text-transform:uppercase; color:var(--verde) }\n  .ajuda { margin:0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3) }\n\n  \n  .escala { display:grid; grid-template-columns:repeat(11,1fr); gap:8px }\n  @media (max-width:600px) { .escala { grid-template-columns:repeat(6,1fr) } }\n  .escala button {\n    appearance:none; font:inherit; font-weight:500; font-variant-numeric:tabular-nums;\n    min-height:48px; padding:0; cursor:pointer; border-radius:0;\n    background:transparent; color:var(--verde); border:1px solid var(--linha);\n    transition:background .12s, color .12s, border-color .12s;\n  }\n  .escala button:hover { background:rgba(58,75,65,.12); border-color:var(--verde) }\n  .escala button:focus-visible { outline:2px solid var(--verde); outline-offset:2px }\n  .escala button[aria-checked=\"true\"] { background:var(--verde); color:var(--papel); border-color:var(--verde) }\n\n  .pontas { display:flex; justify-content:space-between; gap:16px; margin-top:10px;\n            font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3) }\n\n  \n  .reacao { display:none; margin-top:24px; padding:16px 0;\n            border-top:1px solid var(--linha-fraca); border-bottom:1px solid var(--linha-fraca) }\n  .reacao.ativa { display:block }\n  .reacao b { display:block; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase }\n  .reacao span.texto { display:block; margin-top:6px; font-size:15px; color:var(--ink-2) }\n  .reacao[data-zona=\"critico\"] b { color:var(--critico) }\n  .reacao[data-zona=\"neutro\"]  b { color:var(--atencao) }\n  .reacao[data-zona=\"bom\"]     b { color:var(--bom) }\n\n  \n  input[type=text], input[type=tel], textarea {\n    width:100%; font:inherit; font-size:16px; color:var(--ink); background:transparent;\n    border:0; border-bottom:1px solid var(--linha); border-radius:0; padding:10px 0 12px;\n    transition:border-color .12s;\n  }\n  textarea { min-height:104px; resize:vertical; line-height:1.6 }\n  input::placeholder, textarea::placeholder { color:rgba(58,75,65,.45) }\n  input:focus, textarea:focus { outline:none; border-bottom-color:var(--verde); border-bottom-width:2px; padding-bottom:11px }\n  .contador { text-align:right; margin-top:8px; font-size:11px; letter-spacing:.1em;\n              color:var(--ink-3); font-variant-numeric:tabular-nums }\n  .contador.limite { color:var(--critico) }\n\n  .linha-tel { display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:end; margin-top:26px }\n  .linha-tel .nota-lado { font-size:11px; letter-spacing:.08em; text-transform:uppercase;\n                          color:var(--ink-3); line-height:1.9 }\n  @media (max-width:600px) { .linha-tel { grid-template-columns:1fr; gap:14px } }\n\n  .erro-campo { display:none; margin:8px 0 0; font-size:13px; color:var(--critico) }\n  .erro-campo.ativa { display:block }\n  [aria-invalid=\"true\"] { border-bottom-color:var(--critico) }\n\n  \n  .acoes { display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap }\n  .rodape { margin:0; font-size:11px; letter-spacing:.1em; text-transform:uppercase;\n            color:var(--ink-3); line-height:1.9 }\n  button.enviar {\n    font:inherit; font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;\n    color:var(--papel); background:var(--verde); border:1px solid var(--verde); border-radius:0;\n    padding:18px 40px; cursor:pointer; transition:background .15s, color .15s, opacity .15s;\n  }\n  button.enviar:hover:not(:disabled) { background:var(--verde-escuro) }\n  button.enviar:focus-visible { outline:2px solid var(--verde); outline-offset:3px }\n  button.enviar:disabled { opacity:.55; cursor:not-allowed }\n  @media (max-width:600px) { button.enviar { width:100% } .acoes { flex-direction:column-reverse; align-items:stretch } }\n\n  \n  .tela { display:none } .tela.ativa { display:block }\n  .centro { padding:12px 0 8px }\n  .centro h2 { margin:20px 0 8px; font-size:20px; font-weight:600; letter-spacing:-.01em }\n  .centro p { margin:0; max-width:46ch; color:var(--ink-2); font-size:15px; text-wrap:pretty }\n  .selo { width:48px; height:48px; border:1px solid var(--linha); display:grid; place-items:center; color:var(--verde) }\n\n  .esqueleto { height:14px; background:rgba(58,75,65,.18); margin-bottom:10px;\n               animation:pulsa 1.3s ease-in-out infinite }\n  @keyframes pulsa { 0%,100%{opacity:1} 50%{opacity:.4} }\n  .girando { width:14px; height:14px; border:2px solid rgba(230,207,167,.4);\n             border-top-color:var(--papel); border-radius:50%; display:inline-block;\n             vertical-align:-2px; margin-right:8px; animation:gira .7s linear infinite }\n  @keyframes gira { to { transform:rotate(360deg) } }\n\n  .alerta { display:flex; gap:10px; align-items:flex-start; margin-top:18px; padding:14px 0;\n            font-size:14px; color:var(--ink-2);\n            border-top:1px solid var(--critico); border-bottom:1px solid var(--critico) }\n  .alerta b { color:var(--critico) }\n  .oculto { display:none !important }\n  .visualmente-oculto { position:absolute; width:1px; height:1px; padding:0; margin:-1px;\n                        overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0 }\n</style>\n</head>\n\n<body>\n\n<main class=\"folha\">\n\n  <div class=\"topo\">\n    <div class=\"titulo-script\" data-txt=\"tituloScript\">Feedback</div>\n    <div class=\"selo-marca\">\n      <img class=\"logo\" data-logo alt=\"\" hidden>\n      <div data-empresa></div>\n      <div class=\"fraco\" data-txt=\"seloSubtitulo\">Avaliação de compra</div>\n    </div>\n  </div>\n\n  \n  <section class=\"tela ativa\" id=\"tela-carregando\" aria-busy=\"true\">\n    <hr class=\"regua\">\n    <div style=\"padding-top:28px\">\n      <div class=\"esqueleto\" style=\"width:60%;height:20px;margin-bottom:18px\"></div>\n      <div class=\"esqueleto\" style=\"width:90%\"></div>\n      <div class=\"esqueleto\" style=\"width:45%;margin-bottom:26px\"></div>\n      <div class=\"esqueleto\" style=\"height:48px\"></div>\n    </div>\n    <span class=\"visualmente-oculto\" data-txt=\"carregandoOculto\">Carregando seus dados…</span>\n  </section>\n\n  \n  <section class=\"tela centro\" id=\"tela-invalido\">\n    <hr class=\"regua\" style=\"margin-bottom:32px\">\n    <div class=\"selo\" aria-hidden=\"true\">\n      <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"\n           stroke-linecap=\"round\"><path d=\"M12 8v5M12 17h.01\"/><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>\n    </div>\n    <h2 data-txt=\"invalidoTitulo\">Este link não é mais válido</h2>\n    <p data-txt=\"invalidoTexto\">Ele pode ter expirado ou sido copiado pela metade. Abra o link direto do\n       e-mail que você recebeu — ou responda aquele e-mail que a gente reenvia.</p>\n  </section>\n\n  \n  <section class=\"tela centro\" id=\"tela-repetido\">\n    <hr class=\"regua\" style=\"margin-bottom:32px\">\n    <div class=\"selo\" aria-hidden=\"true\">\n      <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"\n           stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>\n    </div>\n    <h2 data-txt=\"repetidoTitulo\">Você já respondeu — obrigado!</h2>\n    <p><span data-txt=\"repetidoPrefixo\">Sua avaliação foi registrada em </span><b data-quando></b><span data-txt=\"repetidoSufixo\">. Se quiser complementar\n       alguma coisa, é só responder o e-mail que enviamos.</span></p>\n  </section>\n\n  \n  <section class=\"tela\" id=\"tela-formulario\">\n\n    <dl class=\"meta\">\n      <div>\n        <dt data-txt=\"metaClienteRotulo\">Cliente</dt>\n        <dd data-cliente>—</dd>\n        <dt data-txt=\"metaProdutoRotulo\">Produto</dt>\n        <dd class=\"produto\" data-produto>—</dd>\n      </div>\n      <div class=\"dir\">\n        <dt data-txt=\"metaDuracaoRotulo\">Avaliação</dt>\n        <dd data-txt=\"metaDuracaoValor\">30 segundos</dd>\n        <dt data-txt=\"metaDataRotulo\">Data</dt>\n        <dd data-hoje>—</dd>\n      </div>\n    </dl>\n\n    <hr class=\"regua\">\n\n    <div style=\"padding-top:24px\">\n      <h1><span data-saudacao>Olá</span><span data-txt=\"h1Sufixo\">, como foi sua experiência?</span></h1>\n      <p class=\"sub\"><span data-txt=\"subPrefixo\">Você comprou </span><span class=\"produto\" data-produto>—</span><span data-txt=\"subSufixo\">. São 30 segundos e ajuda muito a gente a melhorar.</span></p>\n    </div>\n\n    <form id=\"formulario\" novalidate>\n      \n      <div class=\"visualmente-oculto\" aria-hidden=\"true\">\n        <label><span data-txt=\"honeypotLabel\">Não preencha este campo</span><input type=\"text\" name=\"empresa_site\" tabindex=\"-1\" autocomplete=\"off\"></label>\n      </div>\n\n      <fieldset>\n        <div class=\"rot-linha\">\n          <legend id=\"rot-nota\" data-txt=\"notaLegenda\">Recomendação</legend>\n          <p class=\"ajuda\" id=\"dica-nota\" data-txt=\"notaDica\">Nota de 0 a 10</p>\n        </div>\n        <div class=\"escala\" role=\"radiogroup\" aria-labelledby=\"rot-nota\" aria-describedby=\"dica-nota\" id=\"escala\"></div>\n        <div class=\"pontas\"><span data-txt=\"notaPontaEsquerda\">0 · não indicaria</span><span data-txt=\"notaPontaDireita\">indicaria com certeza · 10</span></div>\n        <div class=\"reacao\" id=\"reacao\" role=\"status\">\n          <b id=\"reacao-titulo\"></b><span class=\"texto\" id=\"reacao-texto\"></span>\n        </div>\n        <p class=\"erro-campo\" id=\"erro-nota\" data-txt=\"notaErro\">Escolha uma nota de 0 a 10 para continuar.</p>\n      </fieldset>\n\n      <fieldset style=\"margin-top:34px\">\n        <div class=\"rot-linha\" style=\"padding-top:0\">\n          <label class=\"rotulo\" for=\"observacoes\" data-txt=\"obsLabel\">Comentário</label>\n          <p class=\"ajuda\" id=\"ajuda-obs\" data-txt=\"obsAjudaPadrao\">Opcional</p>\n        </div>\n        <textarea id=\"observacoes\" name=\"observacoes\" maxlength=\"1000\"\n                  aria-describedby=\"ajuda-obs contador\"\n                  data-txt-placeholder=\"obsPlaceholderPadrao\"\n                  placeholder=\"Qualidade, entrega, embalagem…\"></textarea>\n        <div class=\"contador\" id=\"contador\">0 / 1000</div>\n        <p class=\"erro-campo\" id=\"erro-obs\" data-txt=\"obsErro\">Conta rapidinho o que deu errado — é assim que a gente conserta.</p>\n      </fieldset>\n\n      <fieldset>\n        <div class=\"linha-tel\">\n          <div>\n            <div class=\"rot-linha\" style=\"padding:0 0 12px\">\n              <label class=\"rotulo\" for=\"telefone\" data-txt=\"telLabel\">Telefone</label>\n            </div>\n            <input type=\"tel\" id=\"telefone\" name=\"telefone\" inputmode=\"tel\"\n                   autocomplete=\"tel\" data-txt-placeholder=\"telPlaceholder\" placeholder=\"(11) 90000-0000\">\n          </div>\n          <div class=\"nota-lado\" data-txt=\"telAjuda\">Usamos só se você pedir retorno</div>\n        </div>\n        <p class=\"erro-campo\" id=\"erro-tel\" data-txt=\"telErro\">Telefone incompleto — use DDD + número, ou deixe em branco.</p>\n      </fieldset>\n\n      <hr class=\"regua fim\">\n\n      <div class=\"acoes\">\n        <p class=\"rodape\"><span data-txt=\"rodapeLinha1\">Suas respostas vão só</span><br><span data-txt=\"rodapeLinha2\">para o time da </span><span data-empresa></span></p>\n        <button type=\"submit\" class=\"enviar\" id=\"enviar\" data-txt=\"botaoEnviar\">Enviar avaliação</button>\n      </div>\n      <div id=\"falha-envio\"></div>\n    </form>\n  </section>\n\n  \n  <section class=\"tela centro\" id=\"tela-sucesso\">\n    <hr class=\"regua\" style=\"margin-bottom:32px\">\n    <div class=\"selo\" aria-hidden=\"true\">\n      <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"\n           stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>\n    </div>\n    <h2 id=\"sucesso-titulo\">Obrigado!</h2>\n    <p id=\"sucesso-texto\"></p>\n  </section>\n\n</main>\n\n<script>\n(() => {\n  'use strict';\n  const cfg = window.CONFIG;\n  const TEXTOS = window.TEXTOS;\n  const FAIXAS = window.FAIXAS;\n  const $ = (s) => document.querySelector(s);\n  const params = new URLSearchParams(location.search);\n  const token = (params.get('t') || '').trim();\n\n  const mostrar = (id) => {\n    document.querySelectorAll('.tela').forEach((t) => t.classList.toggle('ativa', t.id === id));\n    document.getElementById('tela-carregando').removeAttribute('aria-busy');\n    window.scrollTo({ top: 0, behavior: 'instant' });\n  };\n\n  function aplicarTextos() {\n    document.querySelectorAll('[data-txt]').forEach((el) => {\n      const chave = el.dataset.txt;\n      if (typeof TEXTOS[chave] === 'string') el.textContent = TEXTOS[chave];\n    });\n    document.querySelectorAll('[data-txt-placeholder]').forEach((el) => {\n      const chave = el.dataset.txtPlaceholder;\n      if (typeof TEXTOS[chave] === 'string') el.setAttribute('placeholder', TEXTOS[chave]);\n    });\n  }\n  aplicarTextos();\n\n  const definirMarca = (nome) => {\n    if (!nome) return;\n    document.querySelectorAll('[data-empresa]').forEach((e) => (e.textContent = nome));\n    document.title = `${TEXTOS.tituloAba} · ${nome}`;\n    const img = document.querySelector('[data-logo]');\n    if (img) img.alt = nome;\n  };\n\n  const definirLogo = (url) => {\n    const img = document.querySelector('[data-logo]');\n    if (!img) return;\n    url = url || TEXTOS.logo || '';\n    if (!url) return;\n    img.onerror = () => img.setAttribute('hidden', '');\n    img.onload = () => img.removeAttribute('hidden');\n    img.src = url;\n  };\n  definirMarca(cfg.EMPRESA);\n  definirLogo('');\n\n  const zonaDe = (n) => (n <= FAIXAS.critico_ate ? 'critico' : n <= FAIXAS.neutro_ate ? 'neutro' : 'bom');\n\n  let nota = null;\n  const escala = $('#escala');\n  const botoes = [];\n\n  for (let n = 0; n <= 10; n++) {\n    const b = document.createElement('button');\n    b.type = 'button';\n    b.textContent = n;\n    b.dataset.nota = n;\n    b.dataset.zona = zonaDe(n);\n    b.setAttribute('role', 'radio');\n    b.setAttribute('aria-checked', 'false');\n    b.setAttribute('aria-label', TEXTOS.notaAriaLabelPrefixo + n);\n    b.tabIndex = n === 0 ? 0 : -1;\n    b.addEventListener('click', () => escolher(n));\n    escala.appendChild(b);\n    botoes.push(b);\n  }\n\n  escala.addEventListener('keydown', (ev) => {\n    const atual = nota === null ? 0 : nota;\n    let alvo = null;\n    if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') alvo = Math.min(10, atual + 1);\n    if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') alvo = Math.max(0, atual - 1);\n    if (ev.key === 'Home') alvo = 0;\n    if (ev.key === 'End') alvo = 10;\n    if (alvo === null) return;\n    ev.preventDefault();\n    escolher(alvo);\n    botoes[alvo].focus();\n  });\n\n  function escolher(n) {\n    nota = n;\n    botoes.forEach((b, i) => {\n      b.setAttribute('aria-checked', String(i === n));\n      b.tabIndex = i === n ? 0 : -1;\n    });\n    const z = TEXTOS.zonas[zonaDe(n)];\n    const r = $('#reacao');\n    r.dataset.zona = zonaDe(n);\n    r.classList.add('ativa');\n    $('#reacao-titulo').textContent = z.titulo;\n    $('#reacao-texto').textContent = z.texto;\n    $('#observacoes').placeholder = z.placeholder;\n    $('#ajuda-obs').textContent = z.obrigaTexto ? TEXTOS.obsAjudaObrigatoria : TEXTOS.obsAjudaPadrao;\n    esconderErro('nota');\n  }\n\n  const mostrarErro = (campo, elemento) => {\n    $(`#erro-${campo}`).classList.add('ativa');\n    if (elemento) elemento.setAttribute('aria-invalid', 'true');\n  };\n  const esconderErro = (campo, elemento) => {\n    $(`#erro-${campo}`).classList.remove('ativa');\n    if (elemento) elemento.removeAttribute('aria-invalid');\n  };\n\n  const obs = $('#observacoes');\n  obs.addEventListener('input', () => {\n    const n = obs.value.length;\n    const c = $('#contador');\n    c.textContent = `${n} / 1000`;\n    c.classList.toggle('limite', n > 940);\n    if (n > 0) esconderErro('obs', obs);\n  });\n\n  const tel = $('#telefone');\n  tel.addEventListener('input', () => {\n    const d = tel.value.replace(/\\D/g, '').slice(0, 11);\n    tel.value = d.length <= 2 ? d\n      : d.length <= 6 ? `(${d.slice(0, 2)}) ${d.slice(2)}`\n      : d.length <= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`\n      : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;\n    esconderErro('tel', tel);\n  });\n\n  function dadosInjetados() {\n    const bruto = (document.getElementById('dados-venda')?.textContent || '').trim();\n    if (!bruto || bruto.startsWith('__DADOS')) return null;\n    try { return JSON.parse(bruto); } catch { return null; }\n  }\n\n  async function carregar() {\n    if (!token) return mostrar('tela-invalido');\n    try {\n      let dados = dadosInjetados();\n      if (!dados) {\n        const url = `${cfg.BASE_DEV}${cfg.ROTA_DADOS_DEV}?t=${encodeURIComponent(token)}`;\n        const resp = await fetch(url, { headers: { Accept: 'application/json' } });\n        dados = await resp.json().catch(() => ({}));\n        if (!resp.ok) return mostrar('tela-invalido');\n      }\n\n      definirMarca(dados.empresa);\n      definirLogo(dados.logo);\n      if (!dados.ok) return mostrar('tela-invalido');\n      if (dados.ja_respondeu) {\n        $('[data-quando]').textContent = formatarData(dados.respondido_em);\n        return mostrar('tela-repetido');\n      }\n\n      const nome = dados.nome || dados.primeiro_nome || '';\n      $('[data-saudacao]').textContent = dados.primeiro_nome\n        ? `${TEXTOS.saudacaoComNomePrefixo}${dados.primeiro_nome}` : TEXTOS.saudacaoPadrao;\n      $('[data-cliente]').textContent = nome || TEXTOS.clientePadrao;\n      document.querySelectorAll('[data-produto]').forEach((e) => (e.textContent = dados.produto || TEXTOS.produtoPadrao));\n      $('[data-hoje]').textContent = new Date().toLocaleDateString('pt-BR',\n        { day: '2-digit', month: 'short', year: 'numeric' });\n      if (dados.telefone) { tel.value = dados.telefone; tel.dispatchEvent(new Event('input')); }\n      mostrar('tela-formulario');\n    } catch (e) {\n      mostrar('tela-invalido');\n    }\n  }\n\n  const formatarData = (iso) => {\n    if (!iso) return TEXTOS.dataDesconhecida;\n    const d = new Date(iso);\n    return isNaN(d) ? TEXTOS.dataDesconhecida\n      : d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });\n  };\n\n  $('#formulario').addEventListener('submit', async (ev) => {\n    ev.preventDefault();\n    const botao = $('#enviar');\n    $('#falha-envio').innerHTML = '';\n\n    if (nota === null) {\n      mostrarErro('nota');\n      botoes[0].focus();\n      return;\n    }\n    if (TEXTOS.zonas[zonaDe(nota)].obrigaTexto && obs.value.trim().length < 5) {\n      mostrarErro('obs', obs);\n      obs.focus();\n      return;\n    }\n    const digitos = tel.value.replace(/\\D/g, '');\n    if (digitos.length > 0 && digitos.length < 10) {\n      mostrarErro('tel', tel);\n      tel.focus();\n      return;\n    }\n\n    botao.disabled = true;\n    botao.innerHTML = `<span class=\"girando\" aria-hidden=\"true\"></span>${TEXTOS.botaoEnviando}`;\n\n    try {\n      const base = dadosInjetados() ? cfg.N8N_BASE : cfg.BASE_DEV;\n      const resp = await fetch(`${base}${cfg.ROTA_ENVIO}`, {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({\n          t: token,\n          nota,\n          observacoes: obs.value.trim(),\n          telefone: tel.value.trim(),\n          empresa_site: $('[name=empresa_site]').value,\n          enviado_em: new Date().toISOString(),\n        }),\n      });\n      const dados = await resp.json().catch(() => ({}));\n      if (!resp.ok || !dados.ok) throw new Error(dados.erro || 'falha');\n\n      const z = TEXTOS.zonas[zonaDe(nota)];\n      $('#sucesso-titulo').textContent = z.sucessoTitulo;\n      $('#sucesso-texto').textContent = z.sucessoTexto;\n      mostrar('tela-sucesso');\n    } catch (e) {\n      botao.disabled = false;\n      botao.textContent = TEXTOS.botaoTentarDeNovo;\n      $('#falha-envio').innerHTML =\n        '<div class=\"alerta\" role=\"alert\">' +\n        '<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" ' +\n        'stroke-width=\"1.8\" stroke-linecap=\"round\" style=\"flex:none;margin-top:2px\">' +\n        '<path d=\"M12 8v5M12 17h.01\"/><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>' +\n        `<span><b>${TEXTOS.falhaEnvioTitulo}</b> ${TEXTOS.falhaEnvioTexto}</span></div>`;\n    }\n  });\n\n  carregar();\n\n  setTimeout(() => {\n    if (document.getElementById('tela-carregando').classList.contains('ativa')) {\n      mostrar('tela-invalido');\n    }\n  }, 5000);\n})();\n</script>\n</body>\n</html>\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "1131aa5f-5a16-528d-a289-27f66f112c4b",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -400,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "58ec6820-3603-56a9-9860-d7422e4d56ce",
+              "leftValue": "={{ !!($json.body && $json.body.t) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4fc6066c-c7ed-5c68-ad8f-f5fa0f3041f7",
+      "name": "É Envio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -180,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "vendas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "44b85ed1-2daa-533b-9492-8da1340914e7",
+      "name": "Buscar Venda",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        60,
+        -160
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "respostas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "508e6d21-89a1-5c33-b703-75a34783c6fc",
+      "name": "Buscar Resposta",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        280,
+        -160
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const HTML = $('Configuração').first().json.PAGINA_HTML;\n\nconst token = String($('Webhook · Página do Formulário').first().json.query?.t || '').trim();\n\nconst vendas = $('Buscar Venda').all().map((i) => i.json)\n  .filter((v) => v && v.id_venda && String(v.token || '').trim() === token);\n\nconst idVenda = vendas.length ? String(vendas[0].id_venda) : null;\nconst jaRespondeu = $('Buscar Resposta').all().map((i) => i.json)\n  .filter((r) => r && r.id_resposta && String(r.id_venda) === idVenda);\n\nconst EMPRESA = $('Configuração').first().json.EMPRESA;\nconst LOGO = $('Configuração').first().json.LOGO || '';\n\nlet dados;\nif (!token || vendas.length === 0) {\n  dados = { ok: false, erro: 'token_invalido', empresa: EMPRESA, logo: LOGO };\n} else if (jaRespondeu.length > 0) {\n  dados = { ok: true, ja_respondeu: true, respondido_em: jaRespondeu[0].respondido_em, empresa: EMPRESA, logo: LOGO };\n} else {\n  const v = vendas[0];\n  dados = {\n    ok: true,\n    ja_respondeu: false,\n    primeiro_nome: String(v.nome || '').trim().split(/\\s+/)[0] || '',\n    produto: v.produto || '',\n    telefone: v.telefone || '',\n    empresa: EMPRESA,\n    logo: LOGO,\n  };\n}\n\nconst injecao = JSON.stringify(dados).replace(/</g, '\\\\u003c');\n\nreturn [{ json: { pagina: HTML.replace('__DADOS_DA_VENDA__', injecao) } }];"
+      },
+      "id": "0d1bcac8-e988-5ed4-acd2-171f2cde7478",
+      "name": "Renderizar Página",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.pagina }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5d6813d6-c79e-501b-9210-d94b49e5b7d9",
+      "name": "Responder HTML",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback/enviar",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e0c8ca7f-2068-58d1-94ae-d2ab14fc0cbb",
+      "name": "Webhook · Receber Resposta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -620,
+        200
+      ],
+      "webhookId": "731480f6-c18e-5c96-b7ab-fb4227120ad4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const corpo = $('Webhook · Receber Resposta').first().json.body || {};\nconst token = String(corpo.t || '').trim();\n\nconst nota = Number(corpo.nota);\nconst notaValida = Number.isInteger(nota) && nota >= 0 && nota <= 10;\n\nreturn [{\n  json: {\n    token,\n    nota: notaValida ? nota : null,\n    nota_valida: notaValida,\n    robo: Boolean(String(corpo.empresa_site || '').trim()),\n    observacoes: String(corpo.observacoes || '').trim().slice(0, 1000),\n    telefone: String(corpo.telefone || '').replace(/\\D/g, '').slice(0, 11),\n  },\n}];"
+      },
+      "id": "7dfdf7cd-377d-5c8a-adf2-b2071cc82fc0",
+      "name": "Validar Envio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "vendas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "586a3c58-949f-5764-b936-848319219bd6",
+      "name": "Buscar Venda (envio)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        280,
+        220
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "respostas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "0446632f-314d-5211-a500-7844653b33ba",
+      "name": "Buscar Resposta (envio)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        500,
+        220
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const envio = $('Validar Envio').first().json;\nconst vendas = $('Buscar Venda (envio)').all().map((i) => i.json)\n  .filter((v) => v && v.id_venda && String(v.token || '').trim() === envio.token);\n\nconst idVenda = vendas.length ? String(vendas[0].id_venda) : null;\nconst jaTem = $('Buscar Resposta (envio)').all().map((i) => i.json)\n  .filter((r) => r && r.id_resposta && String(r.id_venda) === idVenda);\n\nlet erro = null;\nif (envio.robo) erro = 'robo';\nelse if (!envio.token || vendas.length === 0) erro = 'token_invalido';\nelse if (jaTem.length > 0) erro = 'ja_respondido';\nelse if (!envio.nota_valida) erro = 'nota_invalida';\n\nconst codigos = { robo: 200, token_invalido: 404, ja_respondido: 409, nota_invalida: 400 };\n\nreturn [{ json: { pode_gravar: erro === null, erro, codigo: erro ? codigos[erro] : 200 } }];"
+      },
+      "id": "d6522300-7ae2-5405-b152-5ff3bb6d2e04",
+      "name": "Decidir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "66a519c7-1f49-50d9-9443-e7edc6f87ad2",
+              "leftValue": "={{ $json.pode_gravar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f7301f8c-899c-53b4-b04f-1eb478bf3d02",
+      "name": "Pode Gravar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        940,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const envio = $('Validar Envio').first().json;\nconst venda = $('Buscar Venda (envio)').all().map((i) => i.json)\n  .find((v) => v && v.id_venda && String(v.token || '').trim() === envio.token);\n\nconst nota = envio.nota;\nconst classificacao = nota <= 6 ? 'detrator' : nota <= 8 ? 'neutro' : 'promotor';\nconst agora = new Date().toISOString();\n\nreturn [{\n  json: {\n    id_resposta: `R-${Date.now().toString(36).toUpperCase()}`,\n    id_venda: venda.id_venda,\n    respondido_em: agora,\n    nome: venda.nome || '',\n    email: venda.email || '',\n    telefone: envio.telefone || venda.telefone || '',\n    produto: venda.produto || '',\n    nota,\n    classificacao_nps: classificacao,\n    observacoes: envio.observacoes,\n    sentimento: '',\n    temas: '',\n    analisado_em: '',\n  },\n}];"
+      },
+      "id": "ef518108-0ecd-5387-a5f1-927885440176",
+      "name": "Montar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuração').first().json.PLANILHA_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "respostas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_resposta",
+              "displayName": "id_resposta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_venda",
+              "displayName": "id_venda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respondido_em",
+              "displayName": "respondido_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "produto",
+              "displayName": "produto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nota",
+              "displayName": "nota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "classificacao_nps",
+              "displayName": "classificacao_nps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "observacoes",
+              "displayName": "observacoes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentimento",
+              "displayName": "sentimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temas",
+              "displayName": "temas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "analisado_em",
+              "displayName": "analisado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "eaea4804-903b-533e-9968-5c4b26612175",
+      "name": "Gravar na Planilha",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1380,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, id_resposta: $json.id_resposta }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "57615c99-41b1-54ee-8803-8c92db71a615",
+      "name": "Responder Sucesso",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1600,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: $json.erro === \"robo\", erro: $json.erro }) }}",
+        "options": {
+          "responseCode": "={{ $json.codigo }}"
+        }
+      },
+      "id": "d39e9db6-cb76-5660-a20a-a34f0de6afac",
+      "name": "Responder Recusa",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1160,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook · Página do Formulário": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook · Receber Resposta": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "É Envio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Envio?": {
+      "main": [
+        [
+          {
+            "node": "Validar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Venda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Venda": {
+      "main": [
+        [
+          {
+            "node": "Buscar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Renderizar Página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Renderizar Página": {
+      "main": [
+        [
+          {
+            "node": "Responder HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Envio": {
+      "main": [
+        [
+          {
+            "node": "Buscar Venda (envio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Venda (envio)": {
+      "main": [
+        [
+          {
+            "node": "Buscar Resposta (envio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Resposta (envio)": {
+      "main": [
+        [
+          {
+            "node": "Decidir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir": {
+      "main": [
+        [
+          {
+            "node": "Pode Gravar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pode Gravar?": {
+      "main": [
+        [
+          {
+            "node": "Montar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Recusa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Gravar na Planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar na Planilha": {
+      "main": [
+        [
+          {
+            "node": "Responder Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 900
+  },
+  "pinData": {},
+  "tags": [],
+  "versionId": "fb15a216-00d5-5f0d-91f2-6b94bcbf8e85",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
